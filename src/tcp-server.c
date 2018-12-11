@@ -64,7 +64,7 @@ static void reaper(int sig)
 }
 
 static inline void __print_ts(struct scm_timestamping *tss,
-		struct sock_extended_err *serr)
+                              struct sock_extended_err *serr)
 {
 	int type, id;
 	char name[64];
@@ -76,7 +76,7 @@ static inline void __print_ts(struct scm_timestamping *tss,
 	} else {
 		type = id = -1;
 	}
-	switch(type) {
+	switch (type) {
 	case -1:
 		strncpy(name, "RX    ", sizeof(name));
 		break;
@@ -94,7 +94,7 @@ static inline void __print_ts(struct scm_timestamping *tss,
 	}
 
 	for (int i = 0; i < 3; i += 2) {
-		switch(i) {
+		switch (i) {
 		case 0:
 			strncat(name, "SW", sizeof(name) - strlen(name) - 1);
 			break;
@@ -107,7 +107,7 @@ static inline void __print_ts(struct scm_timestamping *tss,
 		if (ts->tv_sec == 0 && ts->tv_nsec == 0)
 			continue;
 		fprintf(stderr, "%s: [%3d] %lu.%09lu\n", name, id, ts->tv_sec,
-				ts->tv_nsec);
+		        ts->tv_nsec);
 	}
 }
 
@@ -128,10 +128,10 @@ static inline void printstamps(struct msghdr *msg)
 		                 cm->cmsg_type == IPV6_RECVERR)) {
 			serr = (struct sock_extended_err *) CMSG_DATA(cm);
 			if (serr->ee_errno != ENOMSG || serr->ee_origin !=
-					SO_EE_ORIGIN_TIMESTAMPING) {
+			                SO_EE_ORIGIN_TIMESTAMPING) {
 				fprintf(stderr, "unsupported ip error: %d, "
-						"%d\n", serr->ee_errno,
-						serr->ee_origin);
+				        "%d\n", serr->ee_errno,
+				        serr->ee_origin);
 				serr = NULL;
 			}
 		} else {
