@@ -64,64 +64,80 @@ static void reaper(int sig)
 
 static void printstamps(struct msghdr *msg)
 {
-	//struct timeval *tv;
 	struct timespec *ts;
-	struct cmsghdr *cmsg;
+	struct cmsghdr *cm;
 
-	for (cmsg = CMSG_FIRSTHDR(msg); cmsg; cmsg = CMSG_NXTHDR(msg, cmsg)) {
-		if (cmsg->cmsg_level != SOL_SOCKET) {
+	for (cm = CMSG_FIRSTHDR(msg); cm; cm = CMSG_NXTHDR(msg, cm)) {
+		if (cm->cmsg_level != SOL_SOCKET) {
 			fprintf(stderr, "unsupported level %d\n",
-					cmsg->cmsg_level);
+					cm->cmsg_level);
 			continue;
 		}
-		switch(cmsg->cmsg_type) {
+		switch(cm->cmsg_type) {
 		case SO_TIMESTAMP:
 			break;
 		case SO_TIMESTAMPNS:
 			break;
 		case SO_TIMESTAMPING:
-			ts = (struct timespec *)CMSG_DATA(cmsg);
-			fprintf(stderr, "%ld.%09ld:\tSW RX\n", (long)ts->tv_sec,
+			ts = (struct timespec *)CMSG_DATA(cm);
+			fprintf(stderr, "%ld.%09ld:\tSW\n", (long)ts->tv_sec,
 					(long)ts->tv_nsec);
 			ts++;
 			ts++; /* skip deprecated HW transformed */
-			fprintf(stderr, "%ld.%09ld:\tHW RX\n", (long)ts->tv_sec,
+			fprintf(stderr, "%ld.%09ld:\tHW\n", (long)ts->tv_sec,
 					(long)ts->tv_nsec);
 			break;
 		default:
 			fprintf(stderr, "unsupported type %d\n",
-					cmsg->cmsg_type);
+					cm->cmsg_type);
 			break;
 		}
 	}
 }
 
 #define BUF_SZ 1024
-#define CTRL_SZ 512
+#define CTRL_SZ 1024
+
+static int my_recv(int fd, void *buf, size_t len)
+{
+	int ret;
+	static struct msghdr msg;
+	static struct iovec iov;
+	static char control[CTRL_SZ];
+
+	memset(&msg, 0, sizeof(msg));
+	memset(&iov, 0, sizeof(iov));
+	memset(control, 0, sizeof(control));
+
+	msg.msg_name = NULL;
+	msg.msg_namelen = 0;
+	msg.msg_iov = &iov;
+	msg.msg_iovlen = 1;
+	msg.msg_control = control;
+	msg.msg_controllen = sizeof(control);
+	iov.iov_base = buf;
+	iov.iov_len = len;
+
+	ret = recvmsg(fd, &msg, MSG_ERRQUEUE);
+	if (ret < 0 && errno != EAGAIN) {
+		fprintf(stderr, "recvmsg() failed: %s\n", strerr(errno));
+		return -1;
+	}
+
+	/* get timestamps of the received packet */
+	printstamps(&msg);
+	//struct cmsghdr *cm;
+	//for (cm = CMSG_FIRSTHDR(msg); cm; cm = CMSG_NXTHDR(msg, cm)) {
+
+	return ret;
+}
 
 static int echo(void)
 {
 	int len;
 	char buf[BUF_SZ];
-	struct msghdr msg;
-	struct iovec iov;
-	struct {
-		struct cmsghdr cmsg;
-		unsigned char control[CTRL_SZ];
-	} control;
 
-	memset(&msg, 0, sizeof(msg));
-	msg.msg_name = NULL;
-	msg.msg_namelen = 0;
-	msg.msg_iov = &iov;
-	msg.msg_iovlen = 1;
-	msg.msg_control = &control;
-	msg.msg_controllen = sizeof(control);
-	iov.iov_base = buf;
-	iov.iov_len = sizeof(buf);
-
-	while ((len = recvmsg(STDIN_FILENO, &msg, 0)) >= 0) {
-		printstamps(&msg);
+	while ((len = my_recv(STDIN_FILENO, buf, sizeof(buf))) >= 0) {
 		if (len > 0 && send(STDOUT_FILENO, buf, len, 0) < 0) {
 			fprintf(stderr, "send() failed: %s\n", strerr(errno));
 			return 1;
@@ -129,7 +145,7 @@ static int echo(void)
 	}
 
 	if (len < 0) {
-		fprintf(stderr, "recvmsg() failed: %s\n", strerr(errno));
+		fprintf(stderr, "my_recv() failed: %s\n", strerr(errno));
 		return 1;
 	}
 
@@ -138,7 +154,7 @@ static int echo(void)
 
 static inline int ts_setup(int sock)
 {
-	int tsflags; //, enabled = 1;
+	int tsflags;
 
 	tsflags = // timestamp generation/recording
 	        SOF_TIMESTAMPING_RX_HARDWARE
@@ -156,18 +172,6 @@ static inline int ts_setup(int sock)
 	        | SOF_TIMESTAMPING_OPT_TX_SWHW
 	        ;
 
-	/*
-	if (setsockopt(sock, SOL_SOCKET, SO_TIMESTAMP, &enabled,
-	                sizeof(enabled)) < 0) {
-		fprintf(stderr, "setsockopt() failed: %s\n", strerr(errno));
-		return 1;
-	}
-	if (setsockopt(sock, SOL_SOCKET, SO_TIMESTAMPNS, &enabled,
-	                sizeof(enabled)) < 0) {
-		fprintf(stderr, "setsockopt() failed: %s\n", strerr(errno));
-		return 1;
-	}
-	*/
 	if (setsockopt(sock, SOL_SOCKET, SO_TIMESTAMPING, &tsflags,
 	                sizeof(tsflags)) < 0) {
 		fprintf(stderr, "setsockopt() failed: %s\n", strerr(errno));
