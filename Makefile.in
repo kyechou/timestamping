@@ -1,0 +1,65 @@
+#
+# Makefile for soryu router configuration compiler
+#
+
+# Package information
+PACKAGE_NAME       = @PACKAGE_NAME@
+PACKAGE_VERSION    = @PACKAGE_VERSION@
+PACKAGE_STRING     = @PACKAGE_STRING@
+PACKAGE_BUGREPORT  = @PACKAGE_BUGREPORT@
+PACKAGE_TARNAME    = @PACKAGE_TARNAME@
+PACKAGE_URL        = @PACKAGE_URL@
+
+# Source files and directories
+srcdir      = @srcdir@
+SRCS        = $(shell find $(srcdir)/src -type f -name '*.c')
+HEADERS     = $(patsubst $(srcdir)/src/%,%,$(shell find $(srcdir)/src -type f -name '*.h'))
+OBJS        = $(notdir $(SRCS:%.c=%.o))
+VPATH       = $(shell find $(srcdir)/src -type d)
+
+# Install directories
+prefix      = @prefix@
+exec_prefix = @exec_prefix@
+bindir      = @bindir@
+includedir  = @includedir@/$(PACKAGE_TARNAME)
+libdir      = @libdir@
+datarootdir = @datarootdir@
+mandir      = @mandir@
+docdir      = @docdir@
+licensedir  = @licensedir@
+
+# Programs and flags
+CC          = @CC@
+LD          = @CC@
+CFLAGS      = @CFLAGS@
+LDFLAGS     = @LDFLAGS@
+LIBS        = @LIBS@
+
+.SUFFIXES:
+.SUFFIXES: .c .o
+
+all: tcp-server
+
+tcp-server: tcp-server.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+%.o: %.c
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+# run tests against the built results
+#check: all test
+#	./test
+
+#test: $(PACKAGE_SO_NO_API) $(TEST_OBJS)
+#	$(LD) $(TESTLDFLAGS) -o $@ $(TEST_OBJS) $(TESTLIBS)
+
+#install-git-hooks: $(srcdir)/tests/pre-commit.sh
+#	-@$(LN_S) -f ../../tests/pre-commit.sh $(srcdir)/.git/hooks/pre-commit
+
+clean:
+	-@rm -f tcp-server *.o #test
+
+distclean: clean
+	-@rm -rf autom4te.cache config.log config.status Makefile
+
+.PHONY: all clean distclean
