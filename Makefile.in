@@ -38,9 +38,12 @@ LIBS        = @LIBS@
 .SUFFIXES:
 .SUFFIXES: .c .o
 
-all: tcp-server
+all: tcp-server tcp-client
 
-tcp-server: tcp-server.o
+tcp-server: tcp-server.o timestamping.o utils.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+tcp-client: tcp-client.o timestamping.o utils.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 %.o: %.c
@@ -57,7 +60,7 @@ tcp-server: tcp-server.o
 #	-@$(LN_S) -f ../../tests/pre-commit.sh $(srcdir)/.git/hooks/pre-commit
 
 clean:
-	-@rm -f tcp-server *.o #test
+	-@rm -f tcp-server tcp-client *.o #test
 
 distclean: clean
 	-@rm -rf autom4te.cache config.log config.status Makefile
