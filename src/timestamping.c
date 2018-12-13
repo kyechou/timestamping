@@ -30,7 +30,7 @@ int ts_setup(int sock)
 
 	if (setsockopt(sock, SOL_SOCKET, SO_TIMESTAMPING, &tsflags,
 	                sizeof(tsflags)) < 0) {
-		fprintf(stderr, "setsockopt() failed: %s\n", strerr(errno));
+		fprintf(stderr, "setsockopt failed: %s\n", strerr(errno));
 		return 1;
 	}
 
@@ -128,7 +128,7 @@ static inline void printstamps(struct msghdr *msg)
 
 #define CTRL_SZ 1024
 
-int my_recv(int fd, void *buf, size_t len)
+int my_recv(int fd, void *buf, size_t len, int flags)
 {
 	int ret;
 	static struct msghdr msg;
@@ -148,10 +148,9 @@ int my_recv(int fd, void *buf, size_t len)
 	iov.iov_base = buf;
 	iov.iov_len = len;
 
-	//ret = recvmsg(fd, &msg, MSG_ERRQUEUE);
-	ret = recvmsg(fd, &msg, 0);
-	if (ret < 0 && errno != EAGAIN) {
-		fprintf(stderr, "recvmsg() failed: %s\n", strerr(errno));
+	ret = recvmsg(fd, &msg, flags);
+	if (ret < 0) {
+		fprintf(stderr, "recvmsg failed: %s\n", strerr(errno));
 		return -1;
 	}
 	printstamps(&msg);

@@ -8,7 +8,6 @@
 #include <errno.h>
 #include <unistd.h>
 #include <netdb.h>
-#include <sys/select.h>
 #include "utils.h"
 #include "timestamping.h"
 
@@ -44,50 +43,25 @@ static int activeTCP(struct in_addr inet_addr, int port)
 
 static int echo(int sock)
 {
+	int len;
 	char buf[BUF_SZ];
-	fd_set rfds, afds;
-	int nfds = getdtablesize();
 
-	FD_ZERO(&afds);
-	FD_SET(sock, &afds);
-	FD_SET(STDIN_FILENO, &afds);
-
-	while (1) {
-		memcpy(&rfds, &afds, sizeof(rfds));
-		if (select(nfds, &rfds, NULL, NULL, NULL) < 0) {
-			fprintf(stderr, "select failed: %s\n", strerr(errno));
+	while (fgets(buf, sizeof(buf), stdin)) {
+		if (send(sock, buf, strlen(buf), 0) < 0) {
+			fprintf(stderr, "send failed: %s\n", strerr(errno));
 			return 1;
 		}
-		if (FD_ISSET(STDIN_FILENO, &rfds)) {
-			char *p;
-			p = fgets(buf, sizeof(buf), stdin);
-			if (ferror(stdin)) {
-				clearerr(stdin);
-				fprintf(stderr, "fgets failed\n");
-				return 1;
-			} else if (feof(stdin)) {
-				clearerr(stdin);
-				break;
-			}
-			if (!p)
-				continue;
-			if (send(sock, buf, strlen(buf), 0) < 0) {
-				fprintf(stderr, "send failed: %s\n",
-				        strerr(errno));
-				return 1;
-			}
+
+		//len = my_recv(sock, buf, sizeof(buf) - 1, MSG_ERRQUEUE);
+		len = my_recv(sock, buf, sizeof(buf) - 1, 0);
+		if (len < 0) {
+			fprintf(stderr, "my_recv failed: %s\n", strerr(errno));
+			return 1;
 		}
-		if (FD_ISSET(sock, &rfds)) {
-			int len;
-			len = my_recv(sock, buf, sizeof(buf));
-			if (len < 0) {
-				fprintf(stderr, "my_recv failed: %s\n",
-				        strerr(errno));
-				return 1;
-			}
-			buf[len] = 0;
-			fputs(buf, stdout);
-		}
+		if (len == 0)
+			break;
+		buf[len] = 0;
+		fputs(buf, stdout);
 	}
 
 	return 0;

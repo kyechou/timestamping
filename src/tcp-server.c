@@ -57,8 +57,9 @@ static int echo(void)
 	int len;
 	char buf[BUF_SZ];
 
-	while ((len = my_recv(STDIN_FILENO, buf, sizeof(buf))) >= 0) {
-		if (len > 0 && send(STDOUT_FILENO, buf, len, 0) < 0) {
+	//while ((len = my_recv(STDIN_FILENO, buf, sizeof(buf), MSG_ERRQUEUE)) > 0) {
+	while ((len = my_recv(STDIN_FILENO, buf, sizeof(buf), 0)) > 0) {
+		if (send(STDOUT_FILENO, buf, len, 0) < 0) {
 			fprintf(stderr, "send failed: %s\n", strerr(errno));
 			return 1;
 		}
