@@ -46,14 +46,15 @@ static int echo(int sock)
 {
 	int len;
 	char buf[BUF_SZ];
-	fd_set readfs;
+	fd_set readfs, errorfs;
 
 	while (1) {
-		fprintf(stderr, "--------\n");
 		FD_ZERO(&readfs);
+		FD_ZERO(&errorfs);
 		FD_SET(STDIN_FILENO, &readfs);
 		FD_SET(sock, &readfs);
-		if (select(sock + 1, &readfs, NULL, NULL, NULL) == -1) {
+		FD_SET(sock, &errorfs);
+		if (select(sock + 1, &readfs, NULL, &errorfs, NULL) == -1) {
 			fprintf(stderr, "select: %s\n", strerr(errno));
 			return 1;
 		}
@@ -65,29 +66,21 @@ static int echo(int sock)
 				return 1;
 			}
 		}
-		if (FD_ISSET(sock, &readfs)) {
-			len = my_recv(sock, buf, sizeof(buf) - 1, 0);
-			if (len < 0) {
+		if (FD_ISSET(sock, &readfs) || FD_ISSET(sock, &errorfs)) {
+			len = my_recv(sock, buf, sizeof(buf) - 1, MSG_DONTWAIT);
+			if (len < 0 && errno != EAGAIN) {
 				fprintf(stderr, "my_recv (regular): "
 				        "%s\n", strerr(errno));
 				return 1;
 			} else if (len == 0) {
 				break;
-			} else if (len > 0) {
-				buf[len] = 0;
-				fputs(buf, stdout);
 			}
 
-			while (1) {
-				len = my_recv(sock, buf, sizeof(buf) - 1,
-				              MSG_ERRQUEUE);
-				if (len < 0 && errno == EAGAIN) {
-					break;
-				} else if (len < 0) {
-					fprintf(stderr, "my_recv (error): "
-					        "%s\n", strerr(errno));
-					return 1;
-				}
+			len = my_recv(sock, buf, sizeof(buf) - 1, MSG_ERRQUEUE);
+			if (len < 0 && errno != EAGAIN) {
+				fprintf(stderr, "my_recv (error): "
+					"%s\n", strerr(errno));
+				return 1;
 			}
 		}
 	}

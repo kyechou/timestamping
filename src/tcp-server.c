@@ -57,34 +57,38 @@ static int echo(void)
 {
 	int len;
 	char buf[BUF_SZ];
+	fd_set readfs, errorfs;
 
 	while (1) {
-		fprintf(stderr, "--------\n");
-		len = my_recv(STDIN_FILENO, buf, sizeof(buf) - 1, 0);
-		if (len < 0) {
+		FD_ZERO(&readfs);
+		FD_ZERO(&errorfs);
+		FD_SET(STDIN_FILENO, &readfs);
+		FD_SET(STDIN_FILENO, &errorfs);
+		if (select(3, &readfs, NULL, &errorfs, NULL) == -1) {
+			fprintf(stderr, "select: %s\n", strerr(errno));
+			return 1;
+		}
+
+		len = my_recv(STDIN_FILENO, buf, sizeof(buf) - 1, MSG_DONTWAIT);
+		if (len < 0 && errno != EAGAIN) {
 			fprintf(stderr, "my_recv (regular): "
-			        "%s\n", strerr(errno));
+				"%s\n", strerr(errno));
 			return 1;
 		} else if (len == 0) {
 			break;
 		} else if (len > 0) {
 			if (send(STDOUT_FILENO, buf, len, 0) < 0) {
 				fprintf(stderr, "send: %s\n",
-				        strerr(errno));
+					strerr(errno));
 				return 1;
 			}
 		}
 
-		while (1) {
-			len = my_recv(STDIN_FILENO, buf, sizeof(buf) - 1,
-			              MSG_ERRQUEUE);
-			if (len < 0 && errno == EAGAIN) {
-				break;
-			} else if (len < 0) {
-				fprintf(stderr, "my_recv (error): "
-				        "%s\n", strerr(errno));
-				return 1;
-			}
+		len = my_recv(STDIN_FILENO, buf, sizeof(buf) - 1, MSG_ERRQUEUE);
+		if (len < 0 && errno != EAGAIN) {
+			fprintf(stderr, "my_recv (error): "
+				"%s\n", strerr(errno));
+			return 1;
 		}
 	}
 
