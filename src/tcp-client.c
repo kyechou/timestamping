@@ -68,7 +68,7 @@ static int echo(int sock)
 			len = my_recv(sock, buf, sizeof(buf) - 1, 0);
 			if (len < 0) {
 				fprintf(stderr, "my_recv (regular): "
-						"%s\n", strerr(errno));
+				        "%s\n", strerr(errno));
 				return 1;
 			} else if (len == 0) {
 				break;
@@ -79,12 +79,12 @@ static int echo(int sock)
 
 			while (1) {
 				len = my_recv(sock, buf, sizeof(buf) - 1,
-						MSG_ERRQUEUE);
+				              MSG_ERRQUEUE);
 				if (len < 0 && errno == EAGAIN) {
 					break;
 				} else if (len < 0) {
 					fprintf(stderr, "my_recv (error): "
-							"%s\n", strerr(errno));
+					        "%s\n", strerr(errno));
 					return 1;
 				}
 			}

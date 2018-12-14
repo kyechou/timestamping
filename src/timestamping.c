@@ -30,9 +30,9 @@ int ts_setup(int sock)
 		return 1;
 	}
 	fprintf(stderr, "SIOCSHWTSTAMP: tx_type %d requested, got %d\n"
-			"               rx_filter %d requested, got %d\n",
-			hwconfig_req.tx_type, hwconfig.tx_type,
-			hwconfig_req.rx_filter, hwconfig.rx_filter);
+	        "               rx_filter %d requested, got %d\n",
+	        hwconfig_req.tx_type, hwconfig.tx_type,
+	        hwconfig_req.rx_filter, hwconfig.rx_filter);
 
 	/* set socket options for time stamping */
 	tsflags = // request timestamps

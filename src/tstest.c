@@ -104,7 +104,7 @@ static void sendpacket(int sock, struct sockaddr *addr, socklen_t addr_len)
 	int res;
 
 	res = sendto(sock, sync, sizeof(sync), 0,
-		addr, addr_len);
+	             addr, addr_len);
 	gettimeofday(&now, 0);
 	if (res < 0)
 		printf("%s: %s\n", "send", strerror(errno));
@@ -115,7 +115,7 @@ static void sendpacket(int sock, struct sockaddr *addr, socklen_t addr_len)
 }
 
 static void printpacket(struct msghdr *msg, int res,
-			char *data, int recvmsg_flags)
+                        char *data, int recvmsg_flags)
 {
 	struct sockaddr_in *from_addr = (struct sockaddr_in *)msg->msg_name;
 	struct cmsghdr *cmsg;
@@ -137,7 +137,7 @@ static void printpacket(struct msghdr *msg, int res,
 			switch (cmsg->cmsg_type) {
 			case SO_TIMESTAMPING: {
 				struct timespec *stamp =
-					(struct timespec *)CMSG_DATA(cmsg);
+				        (struct timespec *)CMSG_DATA(cmsg);
 				printf("SO_TIMESTAMPING ");
 				printf("SW %ld.%09ld ",
 				       (long)stamp->tv_sec,
@@ -160,17 +160,17 @@ static void printpacket(struct msghdr *msg, int res,
 			switch (cmsg->cmsg_type) {
 			case IP_RECVERR: {
 				struct sock_extended_err *err =
-					(struct sock_extended_err *)CMSG_DATA(cmsg);
+				        (struct sock_extended_err *)CMSG_DATA(cmsg);
 				printf("IP_RECVERR ee_errno '%s' ee_origin %d => %s",
-					strerror(err->ee_errno),
-					err->ee_origin,
-					err->ee_origin == SO_EE_ORIGIN_TIMESTAMPING ?
-					"bounced packet" : "unexpected origin"
-					);
+				       strerror(err->ee_errno),
+				       err->ee_origin,
+				       err->ee_origin == SO_EE_ORIGIN_TIMESTAMPING ?
+				       "bounced packet" : "unexpected origin"
+				      );
 				if (res < (long)sizeof(sync))
 					printf(" => truncated data?!");
 				else if (!memcmp(sync, data + res - sizeof(sync),
-							sizeof(sync)))
+				                 sizeof(sync)))
 					printf(" => GOT OUR DATA BACK (HURRAY!)");
 				switch (err->ee_info) {
 				case SCM_TSTAMP_SND:
@@ -198,8 +198,8 @@ static void printpacket(struct msghdr *msg, int res,
 			break;
 		default:
 			printf("level %d type %d",
-				cmsg->cmsg_level,
-				cmsg->cmsg_type);
+			       cmsg->cmsg_level,
+			       cmsg->cmsg_type);
 			break;
 		}
 		printf("\n");
@@ -228,7 +228,7 @@ static void recvpacket(int sock, int recvmsg_flags)
 	msg.msg_control = &control;
 	msg.msg_controllen = sizeof(control);
 
-	res = recvmsg(sock, &msg, recvmsg_flags|MSG_DONTWAIT);
+	res = recvmsg(sock, &msg, recvmsg_flags | MSG_DONTWAIT);
 	if (res < 0) {
 		printf("%s %s: %s\n",
 		       "recvmsg",
@@ -252,18 +252,18 @@ int main(void)
 	struct timeval next;
 
 	so_timestamping_flags =
-			SOF_TIMESTAMPING_TX_HARDWARE
-			| SOF_TIMESTAMPING_TX_SOFTWARE
-			| SOF_TIMESTAMPING_RX_HARDWARE
-			| SOF_TIMESTAMPING_RX_SOFTWARE
-			| SOF_TIMESTAMPING_TX_SCHED
-			| SOF_TIMESTAMPING_TX_ACK
-			| SOF_TIMESTAMPING_SOFTWARE
-			| SOF_TIMESTAMPING_RAW_HARDWARE
-			//| SOF_TIMESTAMPING_OPT_ID
-			//| SOF_TIMESTAMPING_OPT_TSONLY
-			//| SOF_TIMESTAMPING_OPT_TX_SWHW
-			;
+	        SOF_TIMESTAMPING_TX_HARDWARE
+	        | SOF_TIMESTAMPING_TX_SOFTWARE
+	        | SOF_TIMESTAMPING_RX_HARDWARE
+	        | SOF_TIMESTAMPING_RX_SOFTWARE
+	        | SOF_TIMESTAMPING_TX_SCHED
+	        | SOF_TIMESTAMPING_TX_ACK
+	        | SOF_TIMESTAMPING_SOFTWARE
+	        | SOF_TIMESTAMPING_RAW_HARDWARE
+	        //| SOF_TIMESTAMPING_OPT_ID
+	        //| SOF_TIMESTAMPING_OPT_TSONLY
+	        //| SOF_TIMESTAMPING_OPT_TX_SWHW
+	        ;
 
 	sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (sock < 0)
@@ -287,8 +287,8 @@ int main(void)
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	addr.sin_port = htons(319 /* PTP event port */);
 	if (bind(sock,
-		 (struct sockaddr *)&addr,
-		 sizeof(struct sockaddr_in)) < 0)
+	                (struct sockaddr *)&addr,
+	                sizeof(struct sockaddr_in)) < 0)
 		bail("bind");
 
 	/* set multicast group for outgoing packets */
@@ -297,14 +297,14 @@ int main(void)
 
 	/* set socket options for time stamping */
 	if (so_timestamping_flags &&
-		setsockopt(sock, SOL_SOCKET, SO_TIMESTAMPING,
-			   &so_timestamping_flags,
-			   sizeof(so_timestamping_flags)) < 0)
+	                setsockopt(sock, SOL_SOCKET, SO_TIMESTAMPING,
+	                           &so_timestamping_flags,
+	                           sizeof(so_timestamping_flags)) < 0)
 		bail("setsockopt SO_TIMESTAMPING");
 
 	/* request IP_PKTINFO for debugging purposes */
 	if (setsockopt(sock, SOL_IP, IP_PKTINFO,
-		       &enabled, sizeof(enabled)) < 0)
+	                &enabled, sizeof(enabled)) < 0)
 		printf("%s: %s\n", "setsockopt IP_PKTINFO", strerror(errno));
 
 	/* send packets forever every five seconds */
@@ -320,7 +320,7 @@ int main(void)
 
 		gettimeofday(&now, 0);
 		delta_us = (long)(next.tv_sec - now.tv_sec) * 1000000 +
-			(long)(next.tv_usec - now.tv_usec);
+		           (long)(next.tv_usec - now.tv_usec);
 		if (delta_us > 0) {
 			/* continue waiting for timeout or data */
 			delta.tv_sec = delta_us / 1000000;
@@ -350,8 +350,8 @@ int main(void)
 		} else {
 			/* write one packet */
 			sendpacket(sock,
-				   (struct sockaddr *)&addr,
-				   sizeof(addr));
+			           (struct sockaddr *)&addr,
+			           sizeof(addr));
 			next.tv_sec += 5;
 			continue;
 		}
