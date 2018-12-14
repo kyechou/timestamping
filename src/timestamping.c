@@ -6,13 +6,36 @@
 #include <netinet/in.h>
 #include <linux/net_tstamp.h>
 #include <linux/errqueue.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <linux/sockios.h>
 #include "utils.h"
 
 int ts_setup(int sock)
 {
 	int tsflags;
+	struct ifreq hwtstamp;
+	struct hwtstamp_config hwconfig, hwconfig_req;
 
-	tsflags = // timestamp generation/recording
+	/* set socket IO options for hardware time stamps */
+	memset(&hwtstamp, 0, sizeof(hwtstamp));
+	strncpy(hwtstamp.ifr_name, "enp0s31f6", sizeof(hwtstamp.ifr_name));
+	hwtstamp.ifr_data = (void *)&hwconfig;
+	memset(&hwconfig, 0, sizeof(hwconfig));
+	hwconfig.tx_type = HWTSTAMP_TX_ON;
+	hwconfig.rx_filter = HWTSTAMP_FILTER_ALL; // HWTSTAMP_FILTER_PTP_V1_L4_SYNC
+	hwconfig_req = hwconfig;
+	if (ioctl(sock, SIOCSHWTSTAMP, &hwtstamp) < 0) {
+		fprintf(stderr, "SIOCSHWTSTAMP: %s\n", strerr(errno));
+		return 1;
+	}
+	fprintf(stderr, "SIOCSHWTSTAMP: tx_type %d requested, got %d\n"
+			"               rx_filter %d requested, got %d\n",
+			hwconfig_req.tx_type, hwconfig.tx_type,
+			hwconfig_req.rx_filter, hwconfig.rx_filter);
+
+	/* set socket options for time stamping */
+	tsflags = // request timestamps
 	        SOF_TIMESTAMPING_RX_HARDWARE
 	        | SOF_TIMESTAMPING_RX_SOFTWARE
 	        | SOF_TIMESTAMPING_TX_HARDWARE
@@ -23,16 +46,20 @@ int ts_setup(int sock)
 	        | SOF_TIMESTAMPING_SOFTWARE
 	        | SOF_TIMESTAMPING_RAW_HARDWARE
 	        // timestamp options
-	        | SOF_TIMESTAMPING_OPT_ID
-	        | SOF_TIMESTAMPING_OPT_TSONLY
-	        | SOF_TIMESTAMPING_OPT_TX_SWHW
+	        //| SOF_TIMESTAMPING_OPT_ID
+	        //| SOF_TIMESTAMPING_OPT_TSONLY
+	        //| SOF_TIMESTAMPING_OPT_TX_SWHW
 	        ;
-
 	if (setsockopt(sock, SOL_SOCKET, SO_TIMESTAMPING, &tsflags,
 	                sizeof(tsflags)) < 0) {
-		fprintf(stderr, "setsockopt failed: %s\n", strerr(errno));
+		fprintf(stderr, "setsockopt: %s\n", strerr(errno));
 		return 1;
 	}
+
+	/* request IP_PKTINFO */
+	//if (setsockopt(sock, SOL_IP, IP_PKTINFO,
+	//	       &enabled, sizeof(enabled)) < 0)
+	//	printf("%s: %s\n", "setsockopt IP_PKTINFO", strerror(errno));
 
 	return 0;
 }
@@ -44,6 +71,8 @@ static inline void __print_ts(struct scm_timestamping *tss,
 	char name[64];
 	struct timespec *ts;
 
+	if (!tss)
+		return;
 	if (serr) {
 		type = serr->ee_info;
 		id = serr->ee_data;
@@ -70,10 +99,10 @@ static inline void __print_ts(struct scm_timestamping *tss,
 	for (int i = 0; i < 3; i += 2) {
 		switch (i) {
 		case 0:
-			strncat(name, "SW", sizeof(name) - strlen(name) - 1);
+			strncpy(name + 6, "SW", sizeof(name) - 6 - 1);
 			break;
 		case 2:
-			strncat(name, "HW", sizeof(name) - strlen(name) - 1);
+			strncpy(name + 6, "HW", sizeof(name) - 6 - 1);
 			break;
 		}
 
@@ -90,7 +119,6 @@ static inline void printstamps(struct msghdr *msg)
 	struct sock_extended_err *serr = NULL;
 	struct scm_timestamping *tss = NULL;
 	struct cmsghdr *cm;
-	int batch = 0;
 
 	for (cm = CMSG_FIRSTHDR(msg); cm; cm = CMSG_NXTHDR(msg, cm)) {
 		if (cm->cmsg_level == SOL_SOCKET &&
@@ -112,18 +140,15 @@ static inline void printstamps(struct msghdr *msg)
 			fprintf(stderr, "unsupported cmsg level, type: %d, "
 			        "%d\n", cm->cmsg_level, cm->cmsg_type);
 		}
-
-		/* print the timestamps */
-		if (tss) {
+		if (tss && serr) {
 			__print_ts(tss, serr);
 			tss = NULL;
 			serr = NULL;
-			++batch;
 		}
 	}
 
-	if (batch > 1)
-		fprintf(stderr, "batched %d timestamps\n", batch);
+	/* print the timestamps */
+	__print_ts(tss, serr);
 }
 
 #define CTRL_SZ 1024
@@ -150,7 +175,7 @@ int my_recv(int fd, void *buf, size_t len, int flags)
 
 	ret = recvmsg(fd, &msg, flags);
 	if (ret < 0) {
-		fprintf(stderr, "recvmsg failed: %s\n", strerr(errno));
+		fprintf(stderr, "recvmsg: %s\n", strerr(errno));
 		return -1;
 	}
 	printstamps(&msg);

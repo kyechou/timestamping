@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/select.h>
 #include "utils.h"
 #include "timestamping.h"
 
@@ -25,19 +26,19 @@ static int passiveTCP(int port)
 
 	/* open a TCP socket */
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-		fprintf(stderr, "socket failed: %s\n", strerr(errno));
+		fprintf(stderr, "socket: %s\n", strerr(errno));
 		return -1;
 	}
 
 	/* bind to server address */
 	if (bind(sockfd, (const struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		fprintf(stderr, "bind failed: %s\n", strerr(errno));
+		fprintf(stderr, "bind: %s\n", strerr(errno));
 		return -1;
 	}
 
 	/* listen for requests */
 	if (listen(sockfd, 0) < 0) {
-		fprintf(stderr, "listen failed: %s\n", strerr(errno));
+		fprintf(stderr, "listen: %s\n", strerr(errno));
 		return -1;
 	}
 
@@ -57,17 +58,34 @@ static int echo(void)
 	int len;
 	char buf[BUF_SZ];
 
-	//while ((len = my_recv(STDIN_FILENO, buf, sizeof(buf), MSG_ERRQUEUE)) > 0) {
-	while ((len = my_recv(STDIN_FILENO, buf, sizeof(buf), 0)) > 0) {
-		if (send(STDOUT_FILENO, buf, len, 0) < 0) {
-			fprintf(stderr, "send failed: %s\n", strerr(errno));
+	while (1) {
+		fprintf(stderr, "--------\n");
+		len = my_recv(STDIN_FILENO, buf, sizeof(buf) - 1, 0);
+		if (len < 0) {
+			fprintf(stderr, "my_recv (regular): "
+					"%s\n", strerr(errno));
 			return 1;
+		} else if (len == 0) {
+			break;
+		} else if (len > 0) {
+			if (send(STDOUT_FILENO, buf, len, 0) < 0) {
+				fprintf(stderr, "send: %s\n",
+						strerr(errno));
+				return 1;
+			}
 		}
-	}
 
-	if (len < 0) {
-		fprintf(stderr, "my_recv failed: %s\n", strerr(errno));
-		return 1;
+		while (1) {
+			len = my_recv(STDIN_FILENO, buf, sizeof(buf) - 1,
+					MSG_ERRQUEUE);
+			if (len < 0 && errno == EAGAIN) {
+				break;
+			} else if (len < 0) {
+				fprintf(stderr, "my_recv (error): "
+						"%s\n", strerr(errno));
+				return 1;
+			}
+		}
 	}
 
 	return 0;
@@ -92,18 +110,18 @@ int main(int argc, char **argv)
 
 	signal(SIGCHLD, reaper);
 	while (1) {
-		/* accept connection request */
+		/* waiting for new connections */
 		ssock = accept(msock, NULL, NULL);
 		if (ssock < 0) {
 			if (errno == EINTR)
 				continue;
-			fprintf(stderr, "accept failed: %s\n", strerr(errno));
+			fprintf(stderr, "accept: %s\n", strerr(errno));
 			return 1;
 		}
 
-		/* fork another process to handle the request */
+		/* fork a process to handle the request */
 		if ((childpid = fork()) < 0) {
-			fprintf(stderr, "fork failed: %s\n", strerr(errno));
+			fprintf(stderr, "fork: %s\n", strerr(errno));
 			return 1;
 		} else if (childpid == 0) {
 			if (ts_setup(ssock) != 0)
