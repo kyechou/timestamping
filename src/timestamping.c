@@ -174,7 +174,7 @@ int my_recv(int fd, void *buf, size_t len, int flags)
 	iov.iov_len = len;
 
 	ret = recvmsg(fd, &msg, flags);
-	if (ret < 0 && errno != EAGAIN) {
+	if (ret < 0 && errno != EAGAIN && errno != ENOMSG) {
 		fprintf(stderr, "recvmsg: %s\n", strerr(errno));
 		return -1;
 	} else if (ret >= 0) {

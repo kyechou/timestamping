@@ -70,7 +70,7 @@ static int echo(void)
 		}
 
 		len = my_recv(STDIN_FILENO, buf, sizeof(buf) - 1, MSG_DONTWAIT);
-		if (len < 0 && errno != EAGAIN) {
+		if (len < 0 && errno != EAGAIN && errno != ENOMSG) {
 			fprintf(stderr, "my_recv (regular): "
 				"%s\n", strerr(errno));
 			return 1;
@@ -85,7 +85,7 @@ static int echo(void)
 		}
 
 		len = my_recv(STDIN_FILENO, buf, sizeof(buf) - 1, MSG_ERRQUEUE);
-		if (len < 0 && errno != EAGAIN) {
+		if (len < 0 && errno != EAGAIN && errno != ENOMSG) {
 			fprintf(stderr, "my_recv (error): "
 				"%s\n", strerr(errno));
 			return 1;
