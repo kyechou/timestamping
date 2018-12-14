@@ -58,7 +58,8 @@ static int echo(int sock)
 			return 1;
 		}
 		if (FD_ISSET(STDIN_FILENO, &readfs)) {
-			fgets(buf, sizeof(buf), stdin);
+			if (!fgets(buf, sizeof(buf), stdin))
+				break;
 			if (send(sock, buf, strlen(buf), 0) < 0) {
 				fprintf(stderr, "send: %s\n", strerr(errno));
 				return 1;
