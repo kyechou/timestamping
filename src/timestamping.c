@@ -9,30 +9,50 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <linux/sockios.h>
+#include <sys/types.h>
+#include <ifaddrs.h>
 #include "utils.h"
 
-int ts_setup(int sock)
+static inline void hwtstamp_setup(int sock, const char *interface)
 {
-	int tsflags;
 	struct ifreq hwtstamp;
 	struct hwtstamp_config hwconfig, hwconfig_req;
 
-	/* set socket IO options for hardware time stamps */
 	memset(&hwtstamp, 0, sizeof(hwtstamp));
-	strncpy(hwtstamp.ifr_name, "enp0s31f6", sizeof(hwtstamp.ifr_name));
+	strncpy(hwtstamp.ifr_name, interface, sizeof(hwtstamp.ifr_name) - 1);
+	hwtstamp.ifr_name[sizeof(hwtstamp.ifr_name) - 1] = 0;
 	hwtstamp.ifr_data = (void *)&hwconfig;
 	memset(&hwconfig, 0, sizeof(hwconfig));
 	hwconfig.tx_type = HWTSTAMP_TX_ON;
 	hwconfig.rx_filter = HWTSTAMP_FILTER_ALL; // HWTSTAMP_FILTER_PTP_V1_L4_SYNC
 	hwconfig_req = hwconfig;
 	if (ioctl(sock, SIOCSHWTSTAMP, &hwtstamp) < 0) {
-		fprintf(stderr, "SIOCSHWTSTAMP: %s\n", strerr(errno));
+		fprintf(stderr, "SIOCSHWTSTAMP: [%s] %s\n", interface,
+		        strerr(errno));
+		return;
+	}
+	fprintf(stderr, "SIOCSHWTSTAMP: [%s] tx_type %d requested, got %d\n"
+	        "                    rx_filter %d requested, got %d\n",
+	        interface, hwconfig_req.tx_type, hwconfig.tx_type,
+	        hwconfig_req.rx_filter, hwconfig.rx_filter);
+}
+
+int ts_setup(int sock)
+{
+	int tsflags;
+	struct ifaddrs *ifap, *ifa;
+
+	/* set hardware timestamp options for all interfaces */
+	if (getifaddrs(&ifap) < 0) {
+		fprintf(stderr, "getifaddrs: %s\n", strerr(errno));
 		return 1;
 	}
-	fprintf(stderr, "SIOCSHWTSTAMP: tx_type %d requested, got %d\n"
-	        "               rx_filter %d requested, got %d\n",
-	        hwconfig_req.tx_type, hwconfig.tx_type,
-	        hwconfig_req.rx_filter, hwconfig.rx_filter);
+	for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+		if (ifa->ifa_addr->sa_family == AF_PACKET &&
+		                strcmp(ifa->ifa_name, "lo") != 0)
+			hwtstamp_setup(sock, ifa->ifa_name);
+	}
+	freeifaddrs(ifap);
 
 	/* set socket options for time stamping */
 	tsflags = // request timestamps

@@ -79,7 +79,7 @@ static int echo(int sock)
 			len = my_recv(sock, buf, sizeof(buf) - 1, MSG_ERRQUEUE);
 			if (len < 0 && errno != EAGAIN && errno != ENOMSG) {
 				fprintf(stderr, "my_recv (error): "
-					"%s\n", strerr(errno));
+				        "%s\n", strerr(errno));
 				return 1;
 			}
 		}
