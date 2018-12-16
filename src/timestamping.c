@@ -66,9 +66,9 @@ int ts_setup(int sock)
 	        | SOF_TIMESTAMPING_SOFTWARE
 	        | SOF_TIMESTAMPING_RAW_HARDWARE
 	        // timestamp options
-	        //| SOF_TIMESTAMPING_OPT_ID
-	        //| SOF_TIMESTAMPING_OPT_TSONLY
-	        //| SOF_TIMESTAMPING_OPT_TX_SWHW
+	        | SOF_TIMESTAMPING_OPT_ID
+	        | SOF_TIMESTAMPING_OPT_TSONLY
+	        | SOF_TIMESTAMPING_OPT_TX_SWHW
 	        ;
 	if (setsockopt(sock, SOL_SOCKET, SO_TIMESTAMPING, &tsflags,
 	                sizeof(tsflags)) < 0) {
