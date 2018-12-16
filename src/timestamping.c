@@ -48,7 +48,7 @@ int ts_setup(int sock)
 		return 1;
 	}
 	for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
-		if (ifa->ifa_addr->sa_family == AF_PACKET &&
+		if (ifa->ifa_addr && ifa->ifa_addr->sa_family == AF_PACKET &&
 		                strcmp(ifa->ifa_name, "lo") != 0)
 			hwtstamp_setup(sock, ifa->ifa_name);
 	}
