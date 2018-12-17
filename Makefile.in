@@ -66,7 +66,7 @@ udp-client: udp-client.o timestamping.o utils.o
 #	-@$(LN_S) -f ../../tests/pre-commit.sh $(srcdir)/.git/hooks/pre-commit
 
 clean:
-	-@rm -f tcp-server tcp-client *.o #test
+	-@rm -f tcp-server tcp-client udp-server udp-client *.o #test
 
 distclean: clean
 	-@rm -rf autom4te.cache config.log config.status Makefile
