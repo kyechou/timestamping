@@ -242,7 +242,7 @@ CHECK_LINKER_FLAGS([$TESTLDFLAGS])
 ##
 AC_CHECK_HEADERS(rpc/server.h, [], [AC_ERROR([rpclib is not installed])])
 AC_CHECK_HEADERS(rpc/client.h, [], [AC_ERROR([rpclib is not installed])])
-ADD_LIB(-lrpc)
+ADD_LIB(-lrpc -lpthread)
 #AC_CHECK_HEADERS(pthread.h, [], [AC_ERROR([pthread is not available])])
 #CHECK_LIB(pthread, pthread_create, [], [AC_ERROR([pthread does not work])])
 #ADD_CXXFLAG(-pthread)

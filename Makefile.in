@@ -38,7 +38,7 @@ LIBS        = @LIBS@
 .SUFFIXES:
 .SUFFIXES: .cpp .o
 
-all: tcp-server tcp-client udp-server udp-client
+all: tcp-server tcp-client udp-server udp-client rpc-server rpc-client
 
 tcp-server: tcp-server.o timestamping.o utils.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
@@ -50,6 +50,12 @@ udp-server: udp-server.o timestamping.o utils.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 udp-client: udp-client.o timestamping.o utils.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+rpc-server: rpc-server.o timestamping.o utils.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+rpc-client: rpc-client.o timestamping.o utils.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 %.o: %.cpp
@@ -66,7 +72,8 @@ udp-client: udp-client.o timestamping.o utils.o
 #	-@$(LN_S) -f ../../tests/pre-commit.sh $(srcdir)/.git/hooks/pre-commit
 
 clean:
-	-@rm -f tcp-server tcp-client udp-server udp-client *.o #test
+	-@rm -f tcp-server tcp-client udp-server udp-client rpc-server \
+		rpc-client *.o #test
 
 distclean: clean
 	-@rm -rf autom4te.cache config.log config.status Makefile
