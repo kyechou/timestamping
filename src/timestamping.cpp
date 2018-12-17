@@ -11,8 +11,8 @@
 #include <linux/sockios.h>
 #include <sys/types.h>
 #include <ifaddrs.h>
-#include "utils.h"
-#include "timestamping.h"
+#include "utils.hpp"
+#include "timestamping.hpp"
 
 static inline void hwtstamp_setup(int sock, const char *interface)
 {
@@ -22,7 +22,7 @@ static inline void hwtstamp_setup(int sock, const char *interface)
 	memset(&hwtstamp, 0, sizeof(hwtstamp));
 	strncpy(hwtstamp.ifr_name, interface, sizeof(hwtstamp.ifr_name) - 1);
 	hwtstamp.ifr_name[sizeof(hwtstamp.ifr_name) - 1] = 0;
-	hwtstamp.ifr_data = (void *)&hwconfig;
+	hwtstamp.ifr_data = (char *)&hwconfig;
 	memset(&hwconfig, 0, sizeof(hwconfig));
 	hwconfig.tx_type = HWTSTAMP_TX_ON;
 	hwconfig.rx_filter = HWTSTAMP_FILTER_ALL; // HWTSTAMP_FILTER_PTP_V1_L4_SYNC

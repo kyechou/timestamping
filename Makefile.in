@@ -29,14 +29,14 @@ docdir      = @docdir@
 licensedir  = @licensedir@
 
 # Programs and flags
-CC          = @CC@
-LD          = @CC@
-CFLAGS      = @CFLAGS@
+CXX         = @CXX@
+LD          = @CXX@
+CXXFLAGS    = @CXXFLAGS@
 LDFLAGS     = @LDFLAGS@
 LIBS        = @LIBS@
 
 .SUFFIXES:
-.SUFFIXES: .c .o
+.SUFFIXES: .cpp .o
 
 all: tcp-server tcp-client udp-server udp-client
 
@@ -52,8 +52,8 @@ udp-server: udp-server.o timestamping.o utils.o
 udp-client: udp-client.o timestamping.o utils.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-%.o: %.c
-	$(CC) -c $(CFLAGS) -o $@ $<
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
 # run tests against the built results
 #check: all test

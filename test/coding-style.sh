@@ -32,7 +32,7 @@ ASTYLE_OPTS=(
 	'--suffix=none'
 )
 SCRIPT_DIR="$(dirname $(realpath ${BASH_SOURCE[0]}))"
-FILES=$(find ${SCRIPT_DIR}/../src ${SCRIPT_DIR} -type f | grep -E '\.(c|h)$')
+FILES=$(find ${SCRIPT_DIR}/../src ${SCRIPT_DIR} -type f | grep -E '\.(c|h|cpp|hpp)$')
 
 for FILE in $FILES; do
 	newfile="$(mktemp "tmp.XXXXXX")" || exit 1

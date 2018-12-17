@@ -31,17 +31,17 @@ AS_IF([test "$OS" = "Debian" -o "$OS" = "Ubuntu"],
 ## Config files and directories
 ##
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_SRCDIR([src/tcp-server.c])
+AC_CONFIG_SRCDIR([src/tcp-server.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
 
 
 ##
 ## Preset default flags
 ##
-: ${CFLAGS="-O3"}
+: ${CXXFLAGS="-O3"}
 : ${LDFLAGS=""}
 : ${LIBS=""}
-: ${TESTCFLAGS="-O3"}
+: ${TESTCXXFLAGS="-O3"}
 : ${TESTLDFLAGS=""}
 : ${TESTLIBS=""}
 
@@ -49,15 +49,13 @@ AC_CONFIG_AUX_DIR([build-aux])
 ##
 ## Language environments
 ##
-AC_LANG(C)
-AC_C_CONST
-AC_C_INLINE
+AC_LANG(C++)
 
 
 ##
 ## Programs
 ##
-AC_PROG_CC
+AC_PROG_CXX
 
 
 ###
@@ -78,29 +76,29 @@ AS_IF([test "$enable_asan" = "yes" -a "$enable_tsan" = "yes"], [
 ###
 ### Predefined functions
 ###
-define([ADD_CFLAG], [
-        AS_IF([test -z "$CFLAGS"], [CFLAGS="$1"],
-              [AS_IF([test -n "${CFLAGS##*$1*}"], [CFLAGS="$CFLAGS $1"])])
-        CPPFLAGS="$CFLAGS"])
+define([ADD_CXXFLAG], [
+        AS_IF([test -z "$CXXFLAGS"], [CXXFLAGS="$1"],
+              [AS_IF([test -n "${CXXFLAGS##*$1*}"], [CXXFLAGS="$CXXFLAGS $1"])])
+        CPPFLAGS="$CXXFLAGS"])
 define([ADD_LDFLAG], [
         AS_IF([test -z "$LDFLAGS"], [LDFLAGS="$1"],
               [AS_IF([test -n "${LDFLAGS##*$1*}"], [LDFLAGS="$LDFLAGS $1"])])])
 define([ADD_LIB], [
         AS_IF([test -z "$LIBS"], [LIBS="$1"],
               [AS_IF([test -n "${LIBS##*$1*}"], [LIBS="$LIBS $1"])])])
-define([ADD_TESTCFLAG], [
-        AS_IF([test -z "$TESTCFLAGS"], [TESTCFLAGS="$1"],
-              [AS_IF([test -n "${TESTCFLAGS##*$1*}"], [TESTCFLAGS="$TESTCFLAGS $1"])])])
+define([ADD_TESTCXXFLAG], [
+        AS_IF([test -z "$TESTCXXFLAGS"], [TESTCXXFLAGS="$1"],
+              [AS_IF([test -n "${TESTCXXFLAGS##*$1*}"], [TESTCXXFLAGS="$TESTCXXFLAGS $1"])])])
 define([ADD_TESTLDFLAG], [
         AS_IF([test -z "$TESTLDFLAGS"], [TESTLDFLAGS="$1"],
               [AS_IF([test -n "${TESTLDFLAGS##*$1*}"], [TESTLDFLAGS="$TESTLDFLAGS $1"])])])
 define([ADD_TESTLIB], [
         AS_IF([test -z "$TESTLIBS"], [TESTLIBS="$1"],
               [AS_IF([test -n "${TESTLIBS##*$1*}"], [TESTLIBS="$TESTLIBS $1"])])])
-define([SAFE_ADD_CFLAG_AND_TESTCFLAG],[
+define([SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG],[
         AC_MSG_CHECKING([if compiler flag $1 works])
-        save_CFLAGS="$CFLAGS"
-        ADD_CFLAG($1)
+        save_CXXFLAGS="$CXXFLAGS"
+        ADD_CXXFLAG($1)
         pushdef(prog, [int main(void) { return 0; }])
         flag_test=0
         AC_COMPILE_IFELSE([AC_LANG_SOURCE([prog])], [flag_test=1],[flag_test=0])
@@ -108,10 +106,10 @@ define([SAFE_ADD_CFLAG_AND_TESTCFLAG],[
         if test $flag_test = 1
         then
                 AC_MSG_RESULT(yes)
-                ADD_TESTCFLAG($1)
+                ADD_TESTCXXFLAG($1)
         else
                 AC_MSG_RESULT(no)
-                CFLAGS="$save_CFLAGS"
+                CXXFLAGS="$save_CXXFLAGS"
         fi
 ])
 define([SAFE_ADD_LDFLAG_AND_TESTLDFLAG],[
@@ -133,13 +131,13 @@ define([SAFE_ADD_LDFLAG_AND_TESTLDFLAG],[
 ])
 define([CHECK_COMPILER_FLAGS], [
         AC_MSG_CHECKING([if compiler flags "$1" work])
-        save_CFLAGS="$CFLAGS"
-        CFLAGS="$1"
+        save_CXXFLAGS="$CXXFLAGS"
+        CXXFLAGS="$1"
         pushdef(prog, [int main(void) { return 0; }])
         flag_test=0
         AC_COMPILE_IFELSE([AC_LANG_SOURCE([prog])], [flag_test=1],[flag_test=0])
         popdef([prog])
-        CFLAGS="$save_CFLAGS"
+        CXXFLAGS="$save_CXXFLAGS"
         if test $flag_test = 1
         then
                 AC_MSG_RESULT(yes)
@@ -176,28 +174,27 @@ define([CHECK_LIB], [
 ## Compiler and linker flags
 ##
 AC_LANG_WERROR
-SAFE_ADD_CFLAG_AND_TESTCFLAG([-Wall])
-SAFE_ADD_CFLAG_AND_TESTCFLAG([-Wextra])
-SAFE_ADD_CFLAG_AND_TESTCFLAG([-Werror])
-SAFE_ADD_CFLAG_AND_TESTCFLAG([-std=c11])
-#ADD_CFLAG([-I${srcdir}/src])
-ADD_CFLAG([-I${srcdir}/src -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE])
+SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG([-Wall])
+SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG([-Wextra])
+SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG([-Werror])
+SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG([-std=c++14])
+ADD_CXXFLAG([-I${srcdir}/src -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE])
 ADD_LDFLAG([-Wl,-s])
-ADD_TESTCFLAG([-I${srcdir}/src])
+ADD_TESTCXXFLAG([-I${srcdir}/src])
 ADD_TESTLDFLAG([-L.])
 AS_IF([test "$enable_coverage" = "yes"], [
-        CFLAGS="$(echo $CFLAGS | sed 's/-O[[0-9]]/-O0/g')"
-        TESTCFLAGS="$(echo $TESTCFLAGS | sed 's/-O[[0-9]]/-O0/g')"
-        ADD_CFLAG(-g)
-        ADD_CFLAG(--coverage)
-        ADD_TESTCFLAG(-g)
-        ADD_TESTCFLAG(--coverage)
+        CXXFLAGS="$(echo $CXXFLAGS | sed 's/-O[[0-9]]/-O0/g')"
+        TESTCXXFLAGS="$(echo $TESTCXXFLAGS | sed 's/-O[[0-9]]/-O0/g')"
+        ADD_CXXFLAG(-g)
+        ADD_CXXFLAG(--coverage)
+        ADD_TESTCXXFLAG(-g)
+        ADD_TESTCXXFLAG(--coverage)
         ADD_LIB(--coverage)
         ADD_TESTLIB(--coverage)
         AS_IF([test -z "$GCOV"], [      # if GCOV is not defined or null
-               AS_IF([test -z "${CC##*gcc*}"], [GCOV="$(which gcov)"],
-                     [test -z "${CC##*clang*}"], [GCOV="$(which llvm-cov) gcov"],
-                     [AC_ERROR([unsupported compiler: $CC])])],
+               AS_IF([test -z "${CXX##*g++*}"], [GCOV="$(which gcov)"],
+                     [test -z "${CXX##*clang*}"], [GCOV="$(which llvm-cov) gcov"],
+                     [AC_ERROR([unsupported compiler: $CXX])])],
               [test -n "${GCOV##/*}"], [        # else if GCOV is not an abs path
                GCOV_PATH="$(which $(echo $GCOV | cut -f 1 -d ' ') 2>/dev/null)"
                AS_IF([test -z "$GCOV_PATH"],
@@ -207,26 +204,26 @@ AS_IF([test "$enable_coverage" = "yes"], [
         AS_IF([test -x "$(echo $GCOV | cut -f 1 -d ' ')"], [AC_MSG_RESULT(yes)], [
                AC_MSG_RESULT(no)
                AC_ERROR([$(echo $GCOV | cut -f 1 -d ' ') cannot be executed])])
-        CC_VER="$($CC --version | grep -oE '[[0-9]]\.[[0-9]]\.[[0-9]]' | head -n1)"
+        CXX_VER="$($CXX --version | grep -oE '[[0-9]]\.[[0-9]]\.[[0-9]]' | head -n1)"
         GCOV_VER="$($GCOV --version | grep -oE '[[0-9]]\.[[0-9]]\.[[0-9]]' | head -n1)"
-        AS_IF([test "$CC_VER" != "$GCOV_VER"],
-              [AC_ERROR([$GCOV $GCOV_VER and $CC $CC_VER version mismatch])])
+        AS_IF([test "$CXX_VER" != "$GCOV_VER"],
+              [AC_ERROR([$GCOV $GCOV_VER and $CXX $CXX_VER version mismatch])])
         AC_SUBST([GCOV], [$GCOV])
 ])
 AS_IF([test "$enable_asan" = "yes"], [
-        SAFE_ADD_CFLAG_AND_TESTCFLAG(-fsanitize=address)
-        SAFE_ADD_CFLAG_AND_TESTCFLAG(-fsanitize=pointer-compare)
-        SAFE_ADD_CFLAG_AND_TESTCFLAG(-fsanitize=pointer-subtract)
-        SAFE_ADD_CFLAG_AND_TESTCFLAG(-fsanitize=leak)
-        SAFE_ADD_CFLAG_AND_TESTCFLAG(-fno-omit-frame-pointer)
-        SAFE_ADD_CFLAG_AND_TESTCFLAG(-fno-common)
+        SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG(-fsanitize=address)
+        SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG(-fsanitize=pointer-compare)
+        SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG(-fsanitize=pointer-subtract)
+        SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG(-fsanitize=leak)
+        SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG(-fno-omit-frame-pointer)
+        SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG(-fno-common)
         SAFE_ADD_LDFLAG_AND_TESTLDFLAG(-fsanitize=address)
         SAFE_ADD_LDFLAG_AND_TESTLDFLAG(-fsanitize=pointer-compare)
         SAFE_ADD_LDFLAG_AND_TESTLDFLAG(-fsanitize=pointer-subtract)
         SAFE_ADD_LDFLAG_AND_TESTLDFLAG(-fsanitize=leak)
 ])
 AS_IF([test "$enable_tsan" = "yes"], [
-        SAFE_ADD_CFLAG_AND_TESTCFLAG(-fsanitize=thread)
+        SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG(-fsanitize=thread)
         SAFE_ADD_LDFLAG_AND_TESTLDFLAG(-fsanitize=thread)
 ])
 
@@ -234,18 +231,21 @@ AS_IF([test "$enable_tsan" = "yes"], [
 ##
 ## Check flags usability
 ##
-CHECK_COMPILER_FLAGS([$CFLAGS])
+CHECK_COMPILER_FLAGS([$CXXFLAGS])
 CHECK_LINKER_FLAGS([$LDFLAGS])
-CHECK_COMPILER_FLAGS([$TESTCFLAGS])
+CHECK_COMPILER_FLAGS([$TESTCXXFLAGS])
 CHECK_LINKER_FLAGS([$TESTLDFLAGS])
 
 
 ##
 ## Libraries
 ##
+AC_CHECK_HEADERS(rpc/server.h, [], [AC_ERROR([rpclib is not installed])])
+AC_CHECK_HEADERS(rpc/client.h, [], [AC_ERROR([rpclib is not installed])])
+ADD_LIB(-lrpc)
 #AC_CHECK_HEADERS(pthread.h, [], [AC_ERROR([pthread is not available])])
 #CHECK_LIB(pthread, pthread_create, [], [AC_ERROR([pthread does not work])])
-#ADD_CFLAG(-pthread)
+#ADD_CXXFLAG(-pthread)
 #ADD_LIB(-pthread)
 #AC_DEFINE([PCRE2_CODE_UNIT_WIDTH], [8])
 #AC_CHECK_HEADERS(pcre2.h, [], [AC_ERROR([pcre2 is not installed])])
@@ -256,10 +256,10 @@ CHECK_LINKER_FLAGS([$TESTLDFLAGS])
 ##
 ## Libraries for testing
 ##
-#SORYU_CFLAGS="$CFLAGS"
+#SORYU_CXXFLAGS="$CXXFLAGS"
 #SORYU_LDFLAGS="$LDFLAGS"
 #SORYU_LIBS="$LIBS"
-#CFLAGS="$TESTCFLAGS"
+#CXXFLAGS="$TESTCXXFLAGS"
 #LDFLAGS="$TESTLDFLAGS"
 #LIBS="$TESTLIBS"
 #AC_CHECK_HEADERS(criterion/criterion.h, [], [AC_ERROR([criterion is not available])])
@@ -267,16 +267,16 @@ CHECK_LINKER_FLAGS([$TESTLDFLAGS])
 #ADD_LIB(-lcriterion)
 #AC_CHECK_HEADERS(soryu.h, [], [AC_ERROR([soryu is not available])])
 #ADD_LIB(-lsoryu)
-#TESTCFLAGS="$CFLAGS"
+#TESTCXXFLAGS="$CXXFLAGS"
 #TESTLDFLAGS="$LDFLAGS"
 #TESTLIBS="$LIBS"
-#CFLAGS="$SORYU_CFLAGS"
+#CXXFLAGS="$SORYU_CXXFLAGS"
 #LDFLAGS="$SORYU_LDFLAGS"
 #LIBS="$SORYU_LIBS"
 
 
 echo >& AS_MESSAGE_FD
-AC_SUBST([TESTCFLAGS], [$TESTCFLAGS])
+AC_SUBST([TESTCXXFLAGS], [$TESTCXXFLAGS])
 AC_SUBST([TESTLDFLAGS], [$TESTLDFLAGS])
 AC_SUBST([TESTLIBS], [$TESTLIBS])
 AC_OUTPUT

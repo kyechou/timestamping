@@ -9,31 +9,31 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <sys/select.h>
-#include "utils.h"
-#include "timestamping.h"
+#include "utils.hpp"
+#include "timestamping.hpp"
 
 const char usage[] = "Usage: ./tcp-client <host> <port>\n";
 
-static int activeTCP(struct in_addr inet_addr, int port)
+static int clientUDP(void)
 {
 	int sockfd;
 	struct sockaddr_in addr;
 
-	/* set up target socket addr */
+	/* set up client socket addr */
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
-	addr.sin_addr = inet_addr;
-	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_port = htons(0);
 
-	/* open a TCP socket */
-	if ((sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+	/* open a UDP socket */
+	if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
 		fprintf(stderr, "socket: %s\n", strerr(errno));
 		return -1;
 	}
 
-	/* connect to the server */
-	if (connect(sockfd, (const struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		fprintf(stderr, "connect: %s\n", strerr(errno));
+	/* bind to client address */
+	if (bind(sockfd, (const struct sockaddr *)&addr, sizeof(addr)) < 0) {
+		fprintf(stderr, "bind: %s\n", strerr(errno));
 		return -1;
 	}
 
@@ -42,11 +42,37 @@ static int activeTCP(struct in_addr inet_addr, int port)
 
 #define BUF_SZ 1024
 
-static int echo(int sock)
+int main(int argc, char **argv)
 {
-	int len;
-	char buf[BUF_SZ];
+	char *end, buf[BUF_SZ];
+	int sock, port, len;
+	struct hostent *host;
+	struct sockaddr_in addr;
+	socklen_t addrlen;
 	fd_set readfs, errorfs;
+
+	/* port number */
+	if (argc != 3 || !(port = strtol(argv[2], &end, 10)) || *end != '\0') {
+		fputs(usage, stderr);
+		return 1;
+	}
+
+	/* target hostname and addresss */
+	if ((host = gethostbyname(argv[1])) == NULL) {
+		fprintf(stderr, "gethostbyname\n");
+		return 1;
+	}
+	addrlen = sizeof(addr);
+	memset(&addr, 0, addrlen);
+	addr.sin_family = AF_INET;
+	addr.sin_addr = *(struct in_addr *)host->h_addr_list[0];
+	addr.sin_port = htons(port);
+
+	/* UDP socket */
+	if ((sock = clientUDP()) < 0)
+		return 1;
+	if (ts_setup(sock) != 0)
+		return 1;
 
 	while (1) {
 		FD_ZERO(&readfs);
@@ -61,7 +87,9 @@ static int echo(int sock)
 		if (FD_ISSET(STDIN_FILENO, &readfs)) {
 			if (!fgets(buf, sizeof(buf), stdin))
 				break;
-			if (send(sock, buf, strlen(buf), 0) < 0) {
+			if (sendto(sock, buf, strlen(buf), 0,
+			                (const struct sockaddr *)&addr,
+			                addrlen) < 0) {
 				fprintf(stderr, "send: %s\n", strerr(errno));
 				return 1;
 			}
@@ -86,33 +114,4 @@ static int echo(int sock)
 	}
 
 	return 0;
-}
-
-int main(int argc, char **argv)
-{
-	char *end;
-	int sock, port;
-	struct in_addr addr;
-	struct hostent *host;
-
-	/* port number */
-	if (argc != 3 || !(port = strtol(argv[2], &end, 10)) || *end != '\0') {
-		fputs(usage, stderr);
-		return 1;
-	}
-
-	/* hostname/addresss */
-	if ((host = gethostbyname(argv[1])) == NULL) {
-		fprintf(stderr, "gethostbyname\n");
-		return 1;
-	}
-	addr = *(struct in_addr *)host->h_addr_list[0];
-
-	/* open TCP connection */
-	if ((sock = activeTCP(addr, port)) < 0)
-		return 1;
-
-	if (ts_setup(sock) != 0)
-		return 1;
-	return echo(sock);
 }

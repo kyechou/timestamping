@@ -8,8 +8,8 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/select.h>
-#include "utils.h"
-#include "timestamping.h"
+#include "utils.hpp"
+#include "timestamping.hpp"
 
 const char usage[] = "Usage: ./tcp-server <port>\n";
 
