@@ -32,8 +32,9 @@ static inline void hwtstamp_setup(int sock, const char *interface)
 		        strerr(errno));
 		return;
 	}
-	fprintf(stderr, "SIOCSHWTSTAMP: [%s] tx_type %d requested, got %d\n"
-	        "                    rx_filter %d requested, got %d\n",
+	fprintf(stderr, "SIOCSHWTSTAMP: [%s]\n"
+	        "               tx_type %d requested, got %d\n"
+	        "               rx_filter %d requested, got %d\n",
 	        interface, hwconfig_req.tx_type, hwconfig.tx_type,
 	        hwconfig_req.rx_filter, hwconfig.rx_filter);
 }
