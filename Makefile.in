@@ -38,12 +38,18 @@ LIBS        = @LIBS@
 .SUFFIXES:
 .SUFFIXES: .c .o
 
-all: tcp-server tcp-client
+all: tcp-server tcp-client udp-server udp-client
 
 tcp-server: tcp-server.o timestamping.o utils.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 tcp-client: tcp-client.o timestamping.o utils.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+udp-server: udp-server.o timestamping.o utils.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+udp-client: udp-client.o timestamping.o utils.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 %.o: %.c

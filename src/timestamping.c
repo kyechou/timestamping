@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include "utils.h"
+#include "timestamping.h"
 
 static inline void hwtstamp_setup(int sock, const char *interface)
 {
@@ -171,9 +172,13 @@ static inline void printstamps(struct msghdr *msg)
 	__print_ts(tss, serr);
 }
 
-#define CTRL_SZ 1024
-
 int my_recv(int fd, void *buf, size_t len, int flags)
+{
+	return my_recvfrom(fd, buf, len, flags, NULL, NULL);
+}
+
+int my_recvfrom(int fd, void *buf, size_t len, int flags,
+                struct sockaddr *src_addr, socklen_t *addrlen)
 {
 	int ret;
 	static struct msghdr msg;
@@ -184,8 +189,8 @@ int my_recv(int fd, void *buf, size_t len, int flags)
 	memset(&iov, 0, sizeof(iov));
 	memset(control, 0, sizeof(control));
 
-	msg.msg_name = NULL;
-	msg.msg_namelen = 0;
+	msg.msg_name = src_addr;
+	msg.msg_namelen = addrlen ? *addrlen : 0;
 	msg.msg_iov = &iov;
 	msg.msg_iovlen = 1;
 	msg.msg_control = control;
@@ -199,6 +204,8 @@ int my_recv(int fd, void *buf, size_t len, int flags)
 		return -1;
 	} else if (ret >= 0) {
 		printstamps(&msg);
+		if (addrlen)
+			*addrlen = msg.msg_namelen;
 	}
 
 	return ret;

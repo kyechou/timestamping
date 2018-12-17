@@ -98,8 +98,7 @@ static int echo(void)
 int main(int argc, char **argv)
 {
 	char *end;
-	int msock, ssock;
-	long port;
+	int msock, ssock, port;
 	pid_t childpid;
 
 	/* port number */
