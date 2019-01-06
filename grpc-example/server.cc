@@ -8,6 +8,8 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
+using grpc::Timestamps;
+using grpc::TimestampsArgs;
 
 using namespace echo;
 
@@ -32,16 +34,16 @@ static std::ostream &operator<< (std::ostream &os, const gpr_timespec &ts)
 	return os;
 }
 
-static void print_ts(void *arg, grpc::Timestamps *timestamps)
+static void print_ts(TimestampsArgs *arg, Timestamps *timestamps)
 {
-	std::cout << "arg = " << arg << std::endl;
-	std::cout << "sendmsg(): [" << timestamps->sendmsg_seq_no << "] "
+	std::cout << "destination = " << arg->pkt_dest << std::endl;
+	std::cout << "sendmsg(): [" << arg->seq_no << "] "
 		<< timestamps->sendmsg_time << std::endl;
-	std::cout << "scheduled: [" << timestamps->scheduled_seq_no << "] "
+	std::cout << "scheduled: [" << arg->seq_no << "] "
 		<< timestamps->scheduled_time << std::endl;
-	std::cout << "sent:      [" << timestamps->sent_seq_no << "] "
+	std::cout << "sent:      [" << arg->seq_no << "] "
 		<< timestamps->sent_time << std::endl;
-	std::cout << "acked:     [" << timestamps->acked_seq_no << "] "
+	std::cout << "acked:     [" << arg->seq_no << "] "
 		<< timestamps->acked_time << std::endl;
 }
 
