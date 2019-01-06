@@ -28,7 +28,7 @@ std::string EchoClient::echo(const std::string &input)
 	Request req;
 	Reply reply;
 
-	ctx.AddMetadata("rpc_uuid", "xxx");
+	ctx.AddMetadata("rpc_uuid", "12345");
 	ctx.AddMetadata("func_name", "echo");
 	req.set_msg(input);
 	Status res = stub->echo(&ctx, req, &reply);
