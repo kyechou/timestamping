@@ -14,10 +14,10 @@ vpath %.proto $(PROTOS_PATH)
 
 all: client server #async_client async_client2 async_server
 
-client: echo.pb.o echo.grpc.pb.o client.o
+client: echo.pb.o echo.grpc.pb.o client.o timestamps.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
-server: echo.pb.o echo.grpc.pb.o server.o
+server: echo.pb.o echo.grpc.pb.o server.o timestamps.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 async_client: echo.pb.o echo.grpc.pb.o async_client.o

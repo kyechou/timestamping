@@ -3,13 +3,12 @@
 #include <string>
 #include <grpcpp/grpcpp.h>
 #include "echo.grpc.pb.h"
+#include "timestamps.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
-using grpc::Timestamps;
-using grpc::TimestampsArgs;
 
 using namespace echo;
 
@@ -21,30 +20,6 @@ Status EchoService::echo(ServerContext *ctx, const Request *request, Reply *repl
 {
 	reply->set_msg(request->msg());
 	return Status::OK;
-}
-
-static std::ostream &operator<< (std::ostream &os, const gpr_timespec &ts)
-{
-	os << ts.tv_sec << ".";
-	std::streamsize width = os.width(9);
-	char fill = os.fill('0');
-	os << ts.tv_nsec;
-	os.width(width);
-	os.fill(fill);
-	return os;
-}
-
-static void print_ts(TimestampsArgs *arg, Timestamps *timestamps)
-{
-	std::cout << "destination = " << arg->pkt_dest << std::endl;
-	std::cout << "sendmsg(): [" << arg->seq_no << "] "
-		<< timestamps->sendmsg_time << std::endl;
-	std::cout << "scheduled: [" << arg->seq_no << "] "
-		<< timestamps->scheduled_time << std::endl;
-	std::cout << "sent:      [" << arg->seq_no << "] "
-		<< timestamps->sent_time << std::endl;
-	std::cout << "acked:     [" << arg->seq_no << "] "
-		<< timestamps->acked_time << std::endl;
 }
 
 int main()
@@ -59,7 +34,7 @@ int main()
 	std::unique_ptr<Server> server(builder.BuildAndStart());
 	std::cout << "Server listening on " << server_address << std::endl;
 
-	server->enable_timestamps(&print_ts);
+	server->enable_timestamps(&process_timestamps);
 
 	// Wait for the server to shutdown. Note that some other thread must be
 	// responsible for shutting down the server for this call to ever
