@@ -3,7 +3,7 @@ CPPFLAGS += $(shell pkg-config --cflags protobuf grpc)
 CXXFLAGS += -std=c++11
 LDFLAGS += -L/usr/local/lib $(shell pkg-config --libs protobuf grpc++ grpc)\
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
-           -ldl
+           -ldl -luuid
 PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
 GRPC_CPP_PLUGIN_PATH ?= $(shell which $(GRPC_CPP_PLUGIN))
