@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <map>
 #include <grpcpp/grpcpp.h>
 #include "echo.grpc.pb.h"
 #include "timestamps.h"
@@ -18,6 +19,10 @@ class EchoService final : public Echo::Service {
 
 Status EchoService::echo(ServerContext *ctx, const Request *request, Reply *reply)
 {
+	const std::multimap<grpc::string_ref, grpc::string_ref> metadata
+		= ctx->client_metadata();
+	std::cout << "rpc_uuid: " << metadata.find("rpc_uuid")->second << std::endl;
+	std::cout << "func_name: " << metadata.find("func_name")->second << std::endl;
 	reply->set_msg(request->msg());
 	return Status::OK;
 }
