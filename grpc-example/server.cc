@@ -21,8 +21,10 @@ Status EchoService::echo(ServerContext *ctx, const Request *request, Reply *repl
 {
 	const std::multimap<grpc::string_ref, grpc::string_ref> metadata
 		= ctx->client_metadata();
-	std::cout << "rpc_uuid: " << metadata.find("rpc_uuid")->second << std::endl;
-	std::cout << "func_name: " << metadata.find("func_name")->second << std::endl;
+	ctx->AddInitialMetadata("rpc_uuid",
+			metadata.find("rpc_uuid")->second.data());
+	ctx->AddInitialMetadata("func_name",
+			metadata.find("func_name")->second.data());
 	reply->set_msg(request->msg());
 	return Status::OK;
 }
