@@ -24,10 +24,11 @@ public:
 
 std::string EchoClient::echo(const std::string &input)
 {
-	ClientContext ctx("echo");
+	ClientContext ctx;
 	Request req;
 	Reply reply;
 
+	ctx.set_timestamps_metadata("echo");
 	req.set_msg(input);
 	Status res = stub->echo(&ctx, req, &reply);
 	if (res.ok())

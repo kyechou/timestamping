@@ -15,16 +15,15 @@ static std::ostream &operator<< (std::ostream &os, const gpr_timespec &ts)
 void process_timestamps(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
 {
 	/* print it out for now */
-	std::cout << "UUID: " << arg->rpc_uuid << std::endl;
-	std::cout << "Name: " << arg->func_name << std::endl;
-	std::cout << "Type: " << arg->rpc_type << std::endl;
-	std::cout << "Dest: " << arg->pkt_dest << std::endl;
-	std::cout << "sendmsg(): [" << arg->seq_no << "] "
-		<< timestamps->sendmsg_time << std::endl;
-	std::cout << "scheduled: [" << arg->seq_no << "] "
-		<< timestamps->scheduled_time << std::endl;
-	std::cout << "sent:      [" << arg->seq_no << "] "
-		<< timestamps->sent_time << std::endl;
-	std::cout << "acked:     [" << arg->seq_no << "] "
-		<< timestamps->acked_time << std::endl;
+	if (arg) {
+		std::cout << "UUID:   " << arg->rpc_uuid << std::endl;
+		std::cout << "Name:   " << arg->func_name << std::endl;
+		std::cout << "Type:   " << arg->rpc_type << std::endl;
+		std::cout << "Dest:   " << arg->pkt_dest << std::endl;
+		std::cout << "Seq No: " << arg->seq_no << std::endl;
+	}
+	std::cout << "sendmsg(): " << timestamps->sendmsg_time << std::endl;
+	std::cout << "scheduled: " << timestamps->scheduled_time << std::endl;
+	std::cout << "sent:      " << timestamps->sent_time << std::endl;
+	std::cout << "acked:     " << timestamps->acked_time << std::endl;
 }

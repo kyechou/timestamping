@@ -19,7 +19,7 @@ class EchoService final : public Echo::Service {
 
 Status EchoService::echo(ServerContext *ctx, const Request *request, Reply *reply)
 {
-	ctx->setup_timestamps_metadata();
+	ctx->set_timestamps_metadata();
 	reply->set_msg(request->msg());
 	return Status::OK;
 }
