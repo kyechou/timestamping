@@ -15,7 +15,10 @@ static std::ostream &operator<< (std::ostream &os, const gpr_timespec &ts)
 void process_timestamps(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
 {
 	/* print it out for now */
-	std::cout << "destination = " << arg->pkt_dest << std::endl;
+	std::cout << "UUID: " << arg->rpc_uuid << std::endl;
+	std::cout << "Name: " << arg->func_name << std::endl;
+	std::cout << "Type: " << arg->rpc_type << std::endl;
+	std::cout << "Dest: " << arg->pkt_dest << std::endl;
 	std::cout << "sendmsg(): [" << arg->seq_no << "] "
 		<< timestamps->sendmsg_time << std::endl;
 	std::cout << "scheduled: [" << arg->seq_no << "] "

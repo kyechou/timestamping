@@ -19,14 +19,7 @@ class EchoService final : public Echo::Service {
 
 Status EchoService::echo(ServerContext *ctx, const Request *request, Reply *reply)
 {
-	const std::multimap<grpc::string_ref, grpc::string_ref> metadata
-		= ctx->client_metadata();
-	const grpc::string_ref uuid_str(metadata.find("rpc_uuid")->second);
-	const grpc::string_ref name_str(metadata.find("func_name")->second);
-	ctx->AddInitialMetadata("rpc_uuid",
-			grpc::string(uuid_str.begin(), uuid_str.end()));
-	ctx->AddInitialMetadata("func_name",
-			grpc::string(name_str.begin(), name_str.end()));
+	ctx->setup_timestamps_metadata();
 	reply->set_msg(request->msg());
 	return Status::OK;
 }
