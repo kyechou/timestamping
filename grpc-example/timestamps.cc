@@ -25,5 +25,6 @@ void process_timestamps(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
 	std::cout << "sendmsg(): " << timestamps->sendmsg_time << std::endl;
 	std::cout << "scheduled: " << timestamps->scheduled_time << std::endl;
 	std::cout << "sent:      " << timestamps->sent_time << std::endl;
+	std::cout << "received:  " << timestamps->received_time << std::endl;
 	std::cout << "acked:     " << timestamps->acked_time << std::endl;
 }
