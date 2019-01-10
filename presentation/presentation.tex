@@ -1,5 +1,5 @@
 %-------------------------------------------------------------------------------
-%	PACKAGES AND THEMES
+%   PACKAGES AND THEMES
 %-------------------------------------------------------------------------------
 
 \documentclass[10pt]{beamer}
@@ -93,7 +93,7 @@
 }
 
 %-------------------------------------------------------------------------------
-%	TITLE PAGE
+%   TITLE PAGE
 %-------------------------------------------------------------------------------
 
 % The short title appears at the bottom of every slide, the full title is only
@@ -122,7 +122,7 @@
 \end{frame}
 
 %-------------------------------------------------------------------------------
-%	PRESENTATION SLIDES
+%   PRESENTATION SLIDES
 %-------------------------------------------------------------------------------
 
 \section{Introduction to Network Timestamping in Linux}
@@ -196,7 +196,7 @@ recvmsg(fd, &msg, 0);\end{verbatim}
 \begin{enumerate}
 \item Set up socket options on both server/client sides right after the
       connection is accepted
-\item Implement a wrapper function for recv(3) with recvmsg(3) to receive
+\item Implement a wrapper function for recv(3) based on recvmsg(3) to receive
       generated timestamps
 \item Read from the error queue asynchronously to get TX timestamps.
 \end{enumerate}
@@ -237,8 +237,42 @@ Moved to gRPC for:
 %------------------------------------------------
 
 \subsection{Sample Client/Server with gRPC}
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{Sample Client/Server with gRPC}
+Simple echo server/client:
+\begin{block}{\normalsize server.cc}
+      {\small
+      \begin{verbatim}
+...
+server->enable_timestamps(&process_timestamps);
+server->Wait();\end{verbatim}
+      }
+\end{block}
+\begin{block}{\normalsize client.cc}
+      {\small
+      \begin{verbatim}
+...
+Client client(channel);
+channel->enable_timestamps(&process_timestamps);
+reply = client.echo(input);\end{verbatim}
+      }
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Sample Client/Server with gRPC}
+User-provided callback:
+\begin{block}{\normalsize timestamps.cc}
+      {\small
+      \begin{verbatim}
+void process_timestamps(grpc::TimestampsArgs *arg,
+                        grpc::Timestamps *timestamps)
+{
+    // Users can do anything with the timestamps and
+    // metadata information
+}\end{verbatim}
+      }
+\end{block}
 \end{frame}
 
 \subsection{Visualization}
