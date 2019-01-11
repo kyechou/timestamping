@@ -1,9 +1,9 @@
 CXX = g++
 CPPFLAGS += $(shell pkg-config --cflags protobuf grpc)
-CXXFLAGS += -std=c++11
+CXXFLAGS += -std=c++11 -g3
 LDFLAGS += -L/usr/local/lib $(shell pkg-config --libs protobuf grpc++ grpc)\
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
-           -ldl -luuid
+           -ldl -luuid -lmysqlclient
 PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
 GRPC_CPP_PLUGIN_PATH ?= $(shell which $(GRPC_CPP_PLUGIN))

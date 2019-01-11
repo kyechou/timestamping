@@ -9,20 +9,18 @@ using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
 
-using namespace echo;
-
-class EchoClient {
+class Client {
 private:
 	std::unique_ptr<Echo::Stub> stub;
 
 public:
-	EchoClient(std::shared_ptr<Channel> channel)
+	Client(std::shared_ptr<Channel> channel)
 		: stub(Echo::NewStub(channel)) {}
 
 	std::string echo(const std::string &input);
 };
 
-std::string EchoClient::echo(const std::string &input)
+std::string Client::echo(const std::string &input)
 {
 	ClientContext ctx;
 	Request req;
@@ -38,23 +36,22 @@ std::string EchoClient::echo(const std::string &input)
 	return "RPC failed";
 }
 
-int main()
+int main(int argc, char **argv)
 {
-	std::string input, reply;
+	parse_args(argc, argv);
 
+	std::string input, reply;
 	std::shared_ptr<Channel> channel =
 		grpc::CreateChannel("localhost:50051",
 				grpc::InsecureChannelCredentials());
-	EchoClient client(channel);
+	Client client(channel);
 
 	channel->enable_timestamps(&process_timestamps);
 
-	while (std::getline(std::cin, input)) {
-		if (input.empty())
-			continue;
-		reply = client.echo(input);
-		std::cout << "received: " << reply << std::endl;
-	}
+	input = std::string(100, 'A');
+	reply = client.echo(input);
+	if (reply != input)
+		std::cerr << "reply mismatch" << std::endl;
 
 	return 0;
 }

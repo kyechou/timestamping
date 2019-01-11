@@ -11,23 +11,23 @@ using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
 
-using namespace echo;
-
-class EchoService final : public Echo::Service {
+class Service final : public Echo::Service {
 	Status echo(ServerContext *ctx, const Request *request, Reply *reply);
 };
 
-Status EchoService::echo(ServerContext *ctx, const Request *request, Reply *reply)
+Status Service::echo(ServerContext *ctx, const Request *request, Reply *reply)
 {
 	ctx->set_timestamps_metadata();
 	reply->set_msg(request->msg());
 	return Status::OK;
 }
 
-int main()
+int main(int argc, char **argv)
 {
+	parse_args(argc, argv);
+
 	std::string server_address("0.0.0.0:50051");
-	EchoService service;
+	Service service;
 	ServerBuilder builder;
 
 	builder.AddListeningPort(server_address,
