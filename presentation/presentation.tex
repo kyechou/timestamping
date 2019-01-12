@@ -46,7 +46,6 @@
 \setsansfont{Liberation Sans}
 \setmainfont{Liberation Serif}
 \setmonofont[Scale=0.9]{Hack}
-\usepackage{microtype} % Slightly tweak font spacing for aesthetics
 
 \usepackage{graphicx} % Required for including pictures
 \usepackage{wrapfig} % Allows in-line images such as the example fish picture
@@ -98,7 +97,7 @@
 
 % The short title appears at the bottom of every slide, the full title is only
 % on the title page
-\title[RPC Timestamping]{RPC Timestamping}
+\title[Bazang: Kernel Level Tracing for Applications]{Bazang: Kernel Level Tracing for Applications}
 
 \author{Kuan-Yen Chou}
 \institute[UIUC] {
@@ -125,9 +124,15 @@
 %   PRESENTATION SLIDES
 %-------------------------------------------------------------------------------
 
-\section{Introduction to Network Timestamping in Linux}
+\section{Introduction}
 
 %------------------------------------------------
+
+\subsection{Kernel Level Tracing for Applications}
+\begin{frame}
+\frametitle{Kernel Level Tracing for Applications}
+
+\end{frame}
 
 \subsection{\texttt{SO\_TIMESTAMPING}: Requesting Timestamps}
 \begin{frame}[fragile]
@@ -275,19 +280,111 @@ void process_timestamps(grpc::TimestampsArgs *arg,
 \end{block}
 \end{frame}
 
-\subsection{Visualization}
+\begin{frame}[fragile]
+\frametitle{Sample Client/Server with gRPC}
+\begin{columns}[c]
+\column{.47\textwidth}
+\begin{block}{}
+      {\scriptsize
+      \begin{verbatim}
+$ ./client
+===========================
+UUID:      2786a4f3-3732-4e21-8d7d-...
+Name:      echo
+Type:      request
+Peer:      ipv6:[::1]:50051
+Seq No:    561
+sendmsg(): 1547162128.244888239
+scheduled: 1547162128.244894091
+sent:      1547162128.244895179
+received:  0.000000000
+acked:     1547162128.244900775
+===========================
+UUID:      2786a4f3-3732-4e21-8d7d-...
+Name:      echo
+Type:      response
+Peer:      ipv6:[::1]:50051
+Seq No:    0
+sendmsg(): 0.000000000
+scheduled: 0.000000000
+sent:      0.000000000
+received:  1547162128.245135628
+acked:     0.000000000\end{verbatim}
+      }
+\end{block}
+
+\column{.47\textwidth}
+\begin{block}{}
+      {\scriptsize
+      \begin{verbatim}
+$ ./server
+===========================
+UUID:      2786a4f3-3732-4e21-8d7d-...
+Name:      echo
+Type:      request
+Peer:      ipv6:[::1]:41362
+Seq No:    0
+sendmsg(): 0.000000000
+scheduled: 0.000000000
+sent:      0.000000000
+received:  1547162128.244895572
+acked:     0.000000000
+===========================
+UUID:      2786a4f3-3732-4e21-8d7d-...
+Name:      echo
+Type:      response
+Peer:      ipv6:[::1]:41362
+Seq No:    439
+sendmsg(): 1547162128.245126207
+scheduled: 1547162128.245132689
+sent:      1547162128.245135146
+received:  0.000000000
+acked:     1547162128.245151533\end{verbatim}
+      }
+\end{block}
+\end{columns}
+\end{frame}
+
+\subsection{Visualization (using Redash)}
 \begin{frame}
-\frametitle{Visualization}
+\frametitle{Visualization (using Redash)}
+Requests:
+\begin{figure}
+\includegraphics[width=\linewidth]{grpc-requests-latencies}
+\end{figure}
+Responses:
+\begin{figure}
+\includegraphics[width=\linewidth]{grpc-responses-latencies}
+\end{figure}
 \end{frame}
 
 \subsection{Special Case: Network Congestion}
 \begin{frame}
 \frametitle{Special Case: Network Congestion}
+Requests:
+\begin{figure}
+\includegraphics[width=\linewidth]{congested-requests}
+\end{figure}
+Responses:
+\begin{figure}
+\includegraphics[width=\linewidth]{congested-responses}
+\end{figure}
 \end{frame}
 
 \subsection{Future Work}
 \begin{frame}
 \frametitle{Future Work}
+\begin{itemize}
+\item TensorFlow and Distributed TensorFlow
+    \begin{itemize}
+        \item Build TensorFlow with this patched gRPC
+        \item In order to get the performance bottlenecks of the distributed applications
+    \end{itemize}
+\item Benchmarking
+    \begin{itemize}
+        \item Benchmark the patched gRPC to know how much performance overhead caused by enabling the timestamping functions
+    \end{itemize}
+\end{itemize}
 \end{frame}
 
 %------------------------------------------------
