@@ -1,8 +1,8 @@
 all: presentation.pdf
 
 %.pdf: %.tex
-	#xelatex $<
-	#bibtex $(basename $<)
+	xelatex $<
+	bibtex $(basename $<)
 	xelatex $<
 	xelatex $<
 

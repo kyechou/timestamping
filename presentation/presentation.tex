@@ -131,7 +131,26 @@
 \subsection{Kernel Level Tracing for Applications}
 \begin{frame}
 \frametitle{Kernel Level Tracing for Applications}
-
+\begin{itemize}
+    \item RPC frameworks are commonly used among large web applications and
+          distributed systems
+          \begin{itemize}
+              \item E.g. Google Cloud Platform, NFS, Dropbox, Windows Exchange
+                    Server, Evernote, Quora, Facebook, Twitter, etc.
+          \end{itemize}
+    \item RPC calls are essentially different from local procedure calls because
+          of the networks
+    \item Fallacies of distributed computing \cite{deutsch1994, arnon}:
+          \begin{enumerate}
+              \item The network is reliable
+              \item Latency is zero
+              \item Bandwidth is infinite
+              \item ...
+          \end{enumerate}
+    \item We'd like to have traces of RPC calls inside distributed systems so
+          that it is easier to debug corner cases, optimize performance, and
+          monitor network conditions.
+\end{itemize}
 \end{frame}
 
 \subsection{\texttt{SO\_TIMESTAMPING}: Requesting Timestamps}
@@ -378,13 +397,29 @@ Responses:
 \item TensorFlow and Distributed TensorFlow
     \begin{itemize}
         \item Build TensorFlow with this patched gRPC
-        \item In order to get the performance bottlenecks of the distributed applications
+        \item In order to get the performance bottlenecks of the distributed
+              applications
     \end{itemize}
 \item Benchmarking
     \begin{itemize}
-        \item Benchmark the patched gRPC to know how much performance overhead caused by enabling the timestamping functions
+        \item Benchmark the patched gRPC to know how much performance overhead
+              caused by enabling the timestamping functions
     \end{itemize}
 \end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\section{References}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{References}
+{\footnotesize
+    \setsansfont{Liberation Serif}
+    \bibliography{ref}
+}
 \end{frame}
 
 %------------------------------------------------
@@ -469,16 +504,6 @@ Responses:
 %An example of the \verb|\cite| command to cite within the presentation:\\~
 %
 %This statement requires citation \cite{figueredo2009}.
-%\end{frame}
-
-%------------------------------------------------
-
-%\begin{frame}
-%\frametitle{References}
-%{\footnotesize
-%    \setsansfont{Liberation Serif}
-%    \bibliography{ref}
-%}
 %\end{frame}
 
 %-------------------------------------------------------------------------------
