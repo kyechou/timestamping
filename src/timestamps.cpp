@@ -29,7 +29,7 @@ static std::string to_string(const gpr_timespec &ts)
 	return oss.str();
 }
 
-namespace{
+namespace {
 class MySQLTSDB {
 private:
 	const char *hostname;
@@ -42,9 +42,18 @@ private:
 
 public:
 	MySQLTSDB(): hostname(NULL), database("grpc_ts_demo"), username("demo"),
-		password("password"), port(3306) { conn = mysql_init(NULL); }
-	~MySQLTSDB() { mysql_close(conn); }
-	void set_host(const char *host) { hostname = host; }
+		password("password"), port(3306)
+	{
+		conn = mysql_init(NULL);
+	}
+	~MySQLTSDB()
+	{
+		mysql_close(conn);
+	}
+	void set_host(const char *host)
+	{
+		hostname = host;
+	}
 	bool connect();
 	bool insert(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps);
 };
@@ -56,7 +65,7 @@ bool MySQLTSDB::connect()
 		return false;
 	}
 	if (mysql_real_connect(conn, hostname, username, password, database,
-				port, NULL, 0) == NULL) {
+	                       port, NULL, 0) == NULL) {
 		std::cerr << mysql_error(conn) << std::endl;
 		return false;
 	}
@@ -68,20 +77,20 @@ bool MySQLTSDB::connect()
 bool MySQLTSDB::insert(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
 {
 	std::string query(
-		"INSERT INTO Timestamps (uuid, name, rpc_type, peer, seq, "
-		"sendmsg_time, scheduled_time, sent_time, received_time, "
-		"acked_time) VALUES ("
+	        "INSERT INTO Timestamps (uuid, name, rpc_type, peer, seq, "
+	        "sendmsg_time, scheduled_time, sent_time, received_time, "
+	        "acked_time) VALUES ("
 	);
 	query +=  "'" + arg->rpc_uuid  + "', "
-		+ "'" + arg->func_name + "', "
-		+ "'" + arg->rpc_type  + "', "
-		+ "'" + arg->peer      + "', "
-		+ std::to_string(arg->seq_no) + ", "
-		+ to_string(timestamps->sendmsg_time) + ", "
-		+ to_string(timestamps->scheduled_time) + ", "
-		+ to_string(timestamps->sent_time) + ", "
-		+ to_string(timestamps->received_time) + ", "
-		+ to_string(timestamps->acked_time) + ");";
+	          + "'" + arg->func_name + "', "
+	          + "'" + arg->rpc_type  + "', "
+	          + "'" + arg->peer      + "', "
+	          + std::to_string(arg->seq_no) + ", "
+	          + to_string(timestamps->sendmsg_time) + ", "
+	          + to_string(timestamps->scheduled_time) + ", "
+	          + to_string(timestamps->sent_time) + ", "
+	          + to_string(timestamps->received_time) + ", "
+	          + to_string(timestamps->acked_time) + ");";
 	if (mysql_query(conn, query.c_str()) != 0) {
 		std::cerr << mysql_error(conn) << std::endl;
 		return false;

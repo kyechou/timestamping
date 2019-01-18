@@ -3,7 +3,7 @@
 #include <string>
 #include <grpcpp/grpcpp.h>
 #include "echo.grpc.pb.h"
-#include "timestamps.h"
+#include "timestamps.hpp"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -32,7 +32,7 @@ std::string Client::echo(const std::string &input)
 	if (res.ok())
 		return reply.msg();
 	std::cerr << res.error_code() << ": " << res.error_message()
-		<< std::endl;
+	          << std::endl;
 	return "RPC failed";
 }
 
@@ -42,8 +42,8 @@ int main(int argc, char **argv)
 
 	std::string input, reply;
 	std::shared_ptr<Channel> channel =
-		grpc::CreateChannel("localhost:50051",
-				grpc::InsecureChannelCredentials());
+	        grpc::CreateChannel("localhost:50051",
+	                            grpc::InsecureChannelCredentials());
 	Client client(channel);
 
 	channel->enable_timestamps(&process_timestamps);

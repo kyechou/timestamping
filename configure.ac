@@ -31,7 +31,7 @@ AS_IF([test "$OS" = "Debian" -o "$OS" = "Ubuntu"],
 ## Config files and directories
 ##
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_SRCDIR([src/tcp-server.cpp])
+AC_CONFIG_SRCDIR([src/server.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
 
 
@@ -178,7 +178,7 @@ SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG([-Wall])
 SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG([-Wextra])
 SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG([-Werror])
 SAFE_ADD_CXXFLAG_AND_TESTCXXFLAG([-std=c++14])
-ADD_CXXFLAG([-I${srcdir}/src -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE])
+ADD_CXXFLAG([-I${srcdir}/src $(pkg-config --cflags protobuf grpc)])
 ADD_LDFLAG([-Wl,-s])
 ADD_TESTCXXFLAG([-I${srcdir}/src])
 ADD_TESTLDFLAG([-L.])
@@ -240,9 +240,10 @@ CHECK_LINKER_FLAGS([$TESTLDFLAGS])
 ##
 ## Libraries
 ##
-AC_CHECK_HEADERS(rpc/server.h, [], [AC_ERROR([rpclib is not installed])])
-AC_CHECK_HEADERS(rpc/client.h, [], [AC_ERROR([rpclib is not installed])])
-ADD_LIB(-lrpc -lpthread)
+AC_CHECK_HEADERS(grpcpp/grpcpp.h, [], [AC_ERROR([grpc is not installed])])
+ADD_LIB($(pkg-config --libs uuid mariadb protobuf grpc++ grpc))
+ADD_LIB(-lgrpc++_reflection)
+
 #AC_CHECK_HEADERS(pthread.h, [], [AC_ERROR([pthread is not available])])
 #CHECK_LIB(pthread, pthread_create, [], [AC_ERROR([pthread does not work])])
 #ADD_CXXFLAG(-pthread)

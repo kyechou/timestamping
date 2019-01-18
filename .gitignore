@@ -4,3 +4,12 @@ config.status
 configure
 tmp.*
 tags
+
+*.o
+*.pb.cc
+*.pb.h
+client
+server
+async_client
+async_client2
+async_server
