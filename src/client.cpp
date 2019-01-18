@@ -22,18 +22,19 @@ public:
 
 std::string Client::echo(const std::string &input)
 {
-	ClientContext ctx;
+	ClientContext ctx("echo");
 	Request req;
 	Reply reply;
 
-	ctx.set_timestamps_metadata("echo");
 	req.set_msg(input);
 	Status res = stub->echo(&ctx, req, &reply);
-	if (res.ok())
-		return reply.msg();
-	std::cerr << res.error_code() << ": " << res.error_message()
-	          << std::endl;
-	return "RPC failed";
+	if (!res.ok()) {
+		std::cerr << res.error_code() << ": " << res.error_message()
+			  << std::endl;
+		return "RPC failed";
+	}
+	// ctx.get_uuid();
+	return reply.msg();
 }
 
 int main(int argc, char **argv)

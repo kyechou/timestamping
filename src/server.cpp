@@ -17,7 +17,7 @@ class Service final : public Echo::Service {
 
 Status Service::echo(ServerContext *ctx, const Request *request, Reply *reply)
 {
-	ctx->set_timestamps_metadata();
+	// ctx->get_uuid();
 	reply->set_msg(request->msg());
 	return Status::OK;
 }

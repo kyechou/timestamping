@@ -57,11 +57,11 @@ async_server: echo.pb.o echo.grpc.pb.o async_server.o
 %.grpc.pb.cc: %.proto
 	$(PROTOC) -I$(PROTOS_PATH) --grpc_out=. \
 		--plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
-	mv *.pb.h $(srcdir)/src/
+	-mv *.pb.h $(srcdir)/src/
 
 %.pb.cc: %.proto
 	$(PROTOC) -I$(PROTOS_PATH) --cpp_out=. $<
-	mv *.pb.h $(srcdir)/src/
+	-mv *.pb.h $(srcdir)/src/
 
 clean:
 	-@rm -f *.o $(srcdir)/src/*.pb.cc $(srcdir)/src/*.pb.h client server \
