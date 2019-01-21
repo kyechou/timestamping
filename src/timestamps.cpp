@@ -38,22 +38,12 @@ private:
 	const char *password;
 	int port;
 	MYSQL *conn;
-	MYSQL_ROW row;
 
 public:
-	MySQLTSDB(): hostname(NULL), database("grpc_ts_demo"), username("demo"),
-		password("password"), port(3306)
-	{
-		conn = mysql_init(NULL);
-	}
-	~MySQLTSDB()
-	{
-		mysql_close(conn);
-	}
-	void set_host(const char *host)
-	{
-		hostname = host;
-	}
+	MySQLTSDB(): hostname(NULL), database("demo"), username("demo"),
+		password("password"), port(3306) { conn = mysql_init(NULL); }
+	~MySQLTSDB() { mysql_close(conn); }
+	void set_host(const char *host) { hostname = host; }
 	bool connect();
 	bool insert(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps);
 };
