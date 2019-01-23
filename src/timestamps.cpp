@@ -1,22 +1,17 @@
-#include <grpcpp/grpcpp.h>
-#include <mysql/mysql.h>
 #include <cstdlib>
+#include <cstring>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <grpcpp/grpcpp.h>
 
-static std::ostream &operator<< (std::ostream &os, const gpr_timespec &ts)
-{
-	os << ts.tv_sec << ".";
-	std::streamsize width = os.width(9);
-	char fill = os.fill('0');
-	os << ts.tv_nsec;
-	os.width(width);
-	os.fill(fill);
-	return os;
-}
+namespace {
 
-static std::string to_string(const gpr_timespec &ts)
+std::string to_string(const gpr_timespec &ts)
 {
 	std::ostringstream oss;
 	oss << ts.tv_sec;
@@ -29,42 +24,7 @@ static std::string to_string(const gpr_timespec &ts)
 	return oss.str();
 }
 
-namespace {
-class MySQLTSDB {
-private:
-	const char *hostname;
-	const char *database;
-	const char *username;
-	const char *password;
-	int port;
-	MYSQL *conn;
-
-public:
-	MySQLTSDB(): hostname(NULL), database("demo"), username("demo"),
-		password("password"), port(3306) { conn = mysql_init(NULL); }
-	~MySQLTSDB() { mysql_close(conn); }
-	void set_host(const char *host) { hostname = host; }
-	bool connect();
-	bool insert(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps);
-};
-
-bool MySQLTSDB::connect()
-{
-	if (!hostname) {
-		std::cerr << "Error: hostname not set" << std::endl;
-		return false;
-	}
-	if (mysql_real_connect(conn, hostname, username, password, database,
-	                       port, NULL, 0) == NULL) {
-		std::cerr << mysql_error(conn) << std::endl;
-		return false;
-	}
-	my_bool reconnect = 1;	// enable automatic reconnection
-	mysql_options(conn, MYSQL_OPT_RECONNECT, (void *)&reconnect);
-	return true;
-}
-
-bool MySQLTSDB::insert(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
+std::string get_qstr(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
 {
 	std::string query(
 	        "INSERT INTO Timestamps (uuid, name, rpc_type, peer, seq, "
@@ -81,33 +41,21 @@ bool MySQLTSDB::insert(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
 	          + to_string(timestamps->sent_time) + ", "
 	          + to_string(timestamps->received_time) + ", "
 	          + to_string(timestamps->acked_time) + ");";
-	if (mysql_query(conn, query.c_str()) != 0) {
-		std::cerr << mysql_error(conn) << std::endl;
-		return false;
-	}
-	return true;
-}
+	return query;
 }
 
-static char usage[] = "\nUsage: ./program [<db_host>]\n";
-static bool db_enabled = false;
-static MySQLTSDB db;
-
-void parse_args(int argc, char **argv)
+std::ostream &operator<< (std::ostream &os, const gpr_timespec &ts)
 {
-	if (argc == 1)
-		return;
-	if (argc != 2) {
-		std::cerr << usage;
-		exit(1);
-	}
-	db_enabled = true;
-	db.set_host(argv[1]);
-	if (!db.connect())
-		exit(1);
+	os << ts.tv_sec << ".";
+	std::streamsize width = os.width(9);
+	char fill = os.fill('0');
+	os << ts.tv_nsec;
+	os.width(width);
+	os.fill(fill);
+	return os;
 }
 
-static void print_timestamps(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
+void print_timestamps(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
 {
 	std::cout << "===========================" << std::endl;
 	if (arg) {
@@ -124,16 +72,39 @@ static void print_timestamps(grpc::TimestampsArgs *arg, grpc::Timestamps *timest
 	std::cout << "acked:     " << timestamps->acked_time << std::endl;
 }
 
-static void store_to_db(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
+const char usage[] = "\n"
+	"Usage: ./program [OPTIONS]\n"
+	"Options:\n"
+	"    -p        Print to standard output\n";
+int dumpfd = -1;
+char dumpfile[] = "tsdump.XXXXXX.sql";
+
+}  // namespace
+
+void parse_args(int argc, char **argv)
 {
-	if (!db.insert(arg, timestamps))
+	if (argc == 1) {
+		dumpfd = mkostemps(dumpfile, 4, O_TRUNC);
+		if (dumpfd == -1) {
+			std::cerr << "Failed to create " << dumpfile
+				<< std::endl;
+			exit(1);
+		}
+	} else if (argc != 2 || strncmp(argv[1], "-p", 3) != 0) {
+		std::cerr << usage;
 		exit(1);
+	}
 }
 
 void process_timestamps(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
 {
-	if (db_enabled)
-		store_to_db(arg, timestamps);
-	else
+	if (dumpfd < 0) {
 		print_timestamps(arg, timestamps);
+	} else {
+		std::string query = get_qstr(arg, timestamps) + "\n";
+		if (write(dumpfd, query.c_str(), query.size()) == -1) {
+			std::cerr << "Failed to write to " << dumpfile
+				<< std::endl;
+		}
+	}
 }

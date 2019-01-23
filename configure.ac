@@ -241,7 +241,7 @@ CHECK_LINKER_FLAGS([$TESTLDFLAGS])
 ## Libraries
 ##
 AC_CHECK_HEADERS(grpcpp/grpcpp.h, [], [AC_ERROR([grpc is not installed])])
-ADD_LIB($(pkg-config --libs mariadb protobuf grpc++ grpc uuid))
+ADD_LIB($(pkg-config --libs protobuf grpc++ grpc uuid))
 ADD_LIB(-lgrpc++_reflection)
 
 #AC_CHECK_HEADERS(pthread.h, [], [AC_ERROR([pthread is not available])])
