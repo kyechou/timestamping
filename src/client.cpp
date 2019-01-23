@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 
 	channel->enable_timestamps(&process_timestamps);
 
-	for (int n = 1; i < 10; ++i) {
+	for (int n = 1; n < 10; ++n) {
 		input = std::string((int)pow(10.0, n), 'A');
 		reply = client.echo(input);
 		if (reply != input)
