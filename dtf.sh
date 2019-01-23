@@ -1,9 +1,11 @@
 #!/bin/bash
 
-SCRIPT_DIR="$(dirname $(realpath ${BASH_SOURCE[0]}))"
-cd "$SCRIPT_DIR/tfbench/scripts/tf_cnn_benchmarks"
+set -e
 
-python tf_cnn_benchmarks.py \
+SCRIPT_DIR="$(dirname $(realpath ${BASH_SOURCE[0]}))"
+cd "$SCRIPT_DIR"
+
+python tfbench/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py \
 	--device=cpu \
 	--local_parameter_device=cpu \
 	--data_format=NHWC \

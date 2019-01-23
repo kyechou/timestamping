@@ -13,3 +13,4 @@ server
 async_client
 async_client2
 async_server
+tsdump.*.sql
