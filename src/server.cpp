@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 {
 	parse_args(argc, argv);
 
-	std::string server_address("0.0.0.0:50051");
+	std::string server_address(argv[1]);
 	Service service;
 	ServerBuilder builder;
 

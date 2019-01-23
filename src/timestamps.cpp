@@ -73,7 +73,7 @@ void print_timestamps(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
 }
 
 const char usage[] = "\n"
-	"Usage: ./program [OPTIONS]\n"
+	"Usage: ./program <endpoint> [OPTIONS]\n"
 	"Options:\n"
 	"    -p        Print to standard output\n";
 int dumpfd = -1;
@@ -83,14 +83,14 @@ char dumpfile[] = "tsdump.XXXXXX.sql";
 
 void parse_args(int argc, char **argv)
 {
-	if (argc == 1) {
+	if (argc == 2) {
 		dumpfd = mkostemps(dumpfile, 4, O_TRUNC);
 		if (dumpfd == -1) {
 			std::cerr << "Failed to create " << dumpfile
 				<< std::endl;
 			exit(1);
 		}
-	} else if (argc != 2 || strncmp(argv[1], "-p", 3) != 0) {
+	} else if (argc != 3 || strncmp(argv[2], "-p", 3) != 0) {
 		std::cerr << usage;
 		exit(1);
 	}

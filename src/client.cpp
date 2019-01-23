@@ -1,6 +1,8 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <cmath>
+#include <unistd.h>
 #include <grpcpp/grpcpp.h>
 #include "echo.grpc.pb.h"
 #include "timestamps.hpp"
@@ -43,14 +45,14 @@ int main(int argc, char **argv)
 
 	std::string input, reply;
 	std::shared_ptr<Channel> channel =
-	        grpc::CreateChannel("localhost:50051",
+	        grpc::CreateChannel(argv[1],
 	                            grpc::InsecureChannelCredentials());
 	Client client(channel);
 
 	channel->enable_timestamps(&process_timestamps);
 
-	for (int i = 0; i < 50; ++i) {
-		input = std::string(100, 'A');
+	for (int n = 1; i < 10; ++i) {
+		input = std::string((int)pow(10.0, n), 'A');
 		reply = client.echo(input);
 		if (reply != input)
 			std::cerr << "reply mismatch" << std::endl;

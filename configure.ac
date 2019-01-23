@@ -242,7 +242,7 @@ CHECK_LINKER_FLAGS([$TESTLDFLAGS])
 ##
 AC_CHECK_HEADERS(grpcpp/grpcpp.h, [], [AC_ERROR([grpc is not installed])])
 ADD_LIB($(pkg-config --libs protobuf grpc++ grpc uuid))
-ADD_LIB(-lgrpc++_reflection)
+ADD_LIB(-lgrpc++_reflection -lm)
 
 #AC_CHECK_HEADERS(pthread.h, [], [AC_ERROR([pthread is not available])])
 #CHECK_LIB(pthread, pthread_create, [], [AC_ERROR([pthread does not work])])
