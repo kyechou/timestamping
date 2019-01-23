@@ -9,6 +9,7 @@ CREATE TABLE Timestamps (
 	rpc_type VARCHAR(9) NOT NULL,
 	peer VARCHAR(128) NOT NULL,
 	seq INT,
+	msg_size INT,
 	sendmsg_time DOUBLE,
 	scheduled_time DOUBLE,
 	sent_time DOUBLE,

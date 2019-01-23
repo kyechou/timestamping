@@ -28,19 +28,20 @@ std::string get_qstr(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
 {
 	std::string query(
 	        "INSERT INTO Timestamps (uuid, name, rpc_type, peer, seq, "
-	        "sendmsg_time, scheduled_time, sent_time, received_time, "
-	        "acked_time) VALUES ("
+		"msg_size, sendmsg_time, scheduled_time, sent_time, "
+		"received_time, acked_time) VALUES ("
 	);
 	query +=  "'" + arg->rpc_uuid  + "', "
-	          + "'" + arg->func_name + "', "
-	          + "'" + arg->rpc_type  + "', "
-	          + "'" + arg->peer      + "', "
-	          + std::to_string(arg->seq_no) + ", "
-	          + to_string(timestamps->sendmsg_time) + ", "
-	          + to_string(timestamps->scheduled_time) + ", "
-	          + to_string(timestamps->sent_time) + ", "
-	          + to_string(timestamps->received_time) + ", "
-	          + to_string(timestamps->acked_time) + ");";
+	        + "'" + arg->func_name + "', "
+	        + "'" + arg->rpc_type  + "', "
+	        + "'" + arg->peer      + "', "
+	        + std::to_string(arg->seq_no)           + ", "
+	        + std::to_string(arg->size)             + ", "
+	        + to_string(timestamps->sendmsg_time)   + ", "
+	        + to_string(timestamps->scheduled_time) + ", "
+	        + to_string(timestamps->sent_time)      + ", "
+	        + to_string(timestamps->received_time)  + ", "
+	        + to_string(timestamps->acked_time)     + ");";
 	return query;
 }
 
@@ -64,6 +65,7 @@ void print_timestamps(grpc::TimestampsArgs *arg, grpc::Timestamps *timestamps)
 		std::cout << "Type:      " << arg->rpc_type << std::endl;
 		std::cout << "Peer:      " << arg->peer << std::endl;
 		std::cout << "Seq No:    " << arg->seq_no << std::endl;
+		std::cout << "Size:      " << arg->size << std::endl;
 	}
 	std::cout << "sendmsg(): " << timestamps->sendmsg_time << std::endl;
 	std::cout << "scheduled: " << timestamps->scheduled_time << std::endl;

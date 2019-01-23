@@ -5,4 +5,4 @@ set -e
 SCRIPT_DIR="$(dirname $(realpath ${BASH_SOURCE[0]}))"
 cd "$SCRIPT_DIR"
 
-mysql -h mustang01 -u demo -p password -D demo -e 'truncate table Timestamps;'
+mysql -h mustang01 -u demo -ppassword -D demo -e 'truncate table Timestamps;'
