@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <map>
+#include <climits>
 #include <grpcpp/grpcpp.h>
 #include "echo.grpc.pb.h"
 #include "timestamps.hpp"
@@ -33,6 +34,7 @@ int main(int argc, char **argv)
 	builder.AddListeningPort(server_address,
 	                         grpc::InsecureServerCredentials());
 	builder.RegisterService(&service);
+	builder.SetMaxMessageSize(INT_MAX);
 	std::unique_ptr<Server> server(builder.BuildAndStart());
 	std::cout << "Server listening on " << server_address << std::endl;
 
