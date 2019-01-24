@@ -51,18 +51,12 @@ int main(int argc, char **argv)
 
 	channel->enable_timestamps(&process_timestamps);
 
-	input = std::string(3000000, 'A');
-	reply = client.echo(input);
-	if (reply != input)
-		std::cerr << "reply mismatch" << std::endl;
-	input = std::string(4000000, 'A');
-	reply = client.echo(input);
-	if (reply != input)
-		std::cerr << "reply mismatch" << std::endl;
-	input = std::string(5000000, 'A');
-	reply = client.echo(input);
-	if (reply != input)
-		std::cerr << "reply mismatch" << std::endl;
+	for (int n = 0; n < 50; ++n) {
+		input = std::string(100, 'A');
+		reply = client.echo(input);
+		if (reply != input)
+			std::cerr << "reply mismatch" << std::endl;
+	}
 
 //	for (int n = 1; n < 10; ++n) {
 //		input = std::string((int)pow(10.0, n), 'A');
